@@ -17,4 +17,15 @@ export class UsersService {
 
     return this.repo.save(user);
   }
+
+  findByUuid(uuid: string) {
+    if (!uuid) {
+      return null;
+    }
+    return this.repo.findOneBy({ uuid });
+  }
+
+  findByEmail(email: string) {
+    return this.repo.find({ where: { email } });
+  }
 }
