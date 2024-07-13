@@ -70,6 +70,15 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "whoami",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{BASE_URL}}/auth/whoami"
+			},
+			"response": []
 		}
 	],
 	"event": [
