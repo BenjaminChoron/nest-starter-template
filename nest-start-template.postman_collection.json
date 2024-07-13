@@ -25,6 +25,42 @@
 			"response": []
 		},
 		{
+			"name": "signout",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "{{BASE_URL}}/auth/signout"
+			},
+			"response": []
+		},
+		{
+			"name": "signin",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "{{BASE_URL}}/auth/signin"
+			},
+			"response": []
+		},
+		{
+			"name": "whoami",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": "{{BASE_URL}}/auth/whoami"
+			},
+			"response": []
+		},
+		{
 			"name": "findByUuid",
 			"request": {
 				"method": "GET",
@@ -68,15 +104,6 @@
 						}
 					]
 				}
-			},
-			"response": []
-		},
-		{
-			"name": "whoami",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": "{{BASE_URL}}/auth/whoami"
 			},
 			"response": []
 		}
