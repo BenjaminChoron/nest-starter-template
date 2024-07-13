@@ -7,105 +7,167 @@
 	},
 	"item": [
 		{
-			"name": "signup",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
+			"name": "users",
+			"item": [
+				{
+					"name": "signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{BASE_URL}}/auth/signup"
+					},
+					"response": []
 				},
-				"url": "{{BASE_URL}}/auth/signup"
-			},
-			"response": []
-		},
-		{
-			"name": "signout",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"url": "{{BASE_URL}}/auth/signout"
-			},
-			"response": []
-		},
-		{
-			"name": "signin",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
+				{
+					"name": "signout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": "{{BASE_URL}}/auth/signout"
+					},
+					"response": []
 				},
-				"url": "{{BASE_URL}}/auth/signin"
-			},
-			"response": []
-		},
-		{
-			"name": "whoami",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": "{{BASE_URL}}/auth/whoami"
-			},
-			"response": []
-		},
-		{
-			"name": "findByUuid",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{BASE_URL}}/auth/:uuid",
-					"host": [
-						"{{BASE_URL}}"
-					],
-					"path": [
-						"auth",
-						":uuid"
-					],
-					"variable": [
-						{
-							"key": "uuid",
-							"value": ""
+				{
+					"name": "signin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{BASE_URL}}/auth/signin"
+					},
+					"response": []
+				},
+				{
+					"name": "whoami",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{BASE_URL}}/auth/whoami"
+					},
+					"response": []
+				},
+				{
+					"name": "findByUuid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/:uuid",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								":uuid"
+							],
+							"variable": [
+								{
+									"key": "uuid",
+									"value": ""
+								}
+							]
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "findByEmail",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{BASE_URL}}/auth?email=test@mail.com",
-					"host": [
-						"{{BASE_URL}}"
-					],
-					"path": [
-						"auth"
-					],
-					"query": [
-						{
-							"key": "email",
-							"value": "test@mail.com"
+					},
+					"response": []
+				},
+				{
+					"name": "findByEmail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth?email=test@mail.com",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "test@mail.com"
+								}
+							]
 						}
-					]
+					},
+					"response": []
+				},
+				{
+					"name": "updateUser",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test3@mail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/:uuid",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								":uuid"
+							],
+							"variable": [
+								{
+									"key": "uuid",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "removeUser",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/auth/:uuid",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								":uuid"
+							],
+							"variable": [
+								{
+									"key": "uuid",
+									"value": "a4f9b63c-c501-46fb-8c59-46784da5b3a1"
+								}
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		}
 	],
 	"event": [
