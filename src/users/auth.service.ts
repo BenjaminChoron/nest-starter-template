@@ -11,7 +11,7 @@ export class AuthService {
 
   async signup(email: string, password: string) {
     const usersWithSameEmail = await this.usersService.findByEmail(email);
-    if (usersWithSameEmail.length) {
+    if (usersWithSameEmail) {
       throw new BadRequestException('Email already exists');
     }
 
