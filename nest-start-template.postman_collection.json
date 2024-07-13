@@ -23,6 +23,53 @@
 				"url": "{{BASE_URL}}/auth/signup"
 			},
 			"response": []
+		},
+		{
+			"name": "findByUuid",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/auth/:uuid",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"auth",
+						":uuid"
+					],
+					"variable": [
+						{
+							"key": "uuid",
+							"value": ""
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "findByEmail",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/auth?email=test@mail.com",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"auth"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "test@mail.com"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"event": [
