@@ -13,7 +13,13 @@ This is a starter template for a NestJS application. It includes a basic setup f
 
 ## Installation
 
+Clone the repo and run `npm install` in the project directory\
+or\
+Run those commands in your terminal:
+
 ```bash
+$ npx degit BenjaminChoron/nest-starter-template project-name
+$ cd project-name
 $ npm install
 ```
 
