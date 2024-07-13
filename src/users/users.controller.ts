@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   Session,
@@ -15,6 +17,7 @@ import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
 import { User } from './user.entity';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Controller('auth')
 @Serialize(UserDto)
@@ -68,5 +71,15 @@ export class UsersController {
     }
 
     return user;
+  }
+
+  @Patch('/:uuid')
+  updateUser(@Param('uuid') uuid: string, @Body() body: UpdateUserDto) {
+    return this.usersService.update(uuid, body);
+  }
+
+  @Delete('/:uuid')
+  removeUser(@Param('uuid') uuid: string) {
+    return this.usersService.remove(uuid);
   }
 }
