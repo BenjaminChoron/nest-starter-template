@@ -2,13 +2,14 @@
 
 ## Description
 
-This is a starter template for a NestJS application. It includes a basic setup for a REST API with a SQLite database and user authentification.
+This is a starter template for a NestJS application. It includes a basic setup for a REST API with a SQLite database and user authentication.
 
 ## Stack
 
 - [NestJS](https://nestjs.com/)
 - [TypeORM](https://typeorm.io/)
 - [SQLite](https://www.sqlite.org/index.html)
+- [JWT](https://jwt.io/)
 - ...
 
 ## Installation
