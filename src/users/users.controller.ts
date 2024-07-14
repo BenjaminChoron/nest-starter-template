@@ -6,53 +6,17 @@ import {
   NotFoundException,
   Param,
   Patch,
-  Post,
   Query,
-  Session,
-  UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
-import { User } from './user.entity';
-import { CurrentUser } from './decorators/current-user.decorator';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { AuthGuard } from '../guards/auth.guard';
 
-@Controller('auth')
+@Controller('users')
 @Serialize(UserDto)
 export class UsersController {
-  constructor(
-    private authService: AuthService,
-    private usersService: UsersService,
-  ) {}
-
-  @UseGuards(AuthGuard)
-  @Get('/whoami')
-  whoAmI(@CurrentUser() user: User) {
-    return user;
-  }
-
-  @Post('/signout')
-  signOut(@Session() session: any) {
-    session.userUuid = null;
-  }
-
-  @Post('/signup')
-  async createUser(@Body() body: CreateUserDto, @Session() session: any) {
-    const user = await this.authService.signup(body.email, body.password);
-    session.userUuid = user.uuid;
-    return user;
-  }
-
-  @Post('/signin')
-  async signin(@Body() body: CreateUserDto, @Session() session: any) {
-    const user = await this.authService.signin(body.email, body.password);
-    session.userUuid = user.uuid;
-    return user;
-  }
+  constructor(private usersService: UsersService) {}
 
   @Get('/:uuid')
   async findUserByUuid(@Param('uuid') uuid: string) {
@@ -76,13 +40,11 @@ export class UsersController {
     return user;
   }
 
-  @UseGuards(AuthGuard)
   @Patch('/:uuid')
   updateUser(@Param('uuid') uuid: string, @Body() body: UpdateUserDto) {
     return this.usersService.update(uuid, body);
   }
 
-  @UseGuards(AuthGuard)
   @Delete('/:uuid')
   removeUser(@Param('uuid') uuid: string) {
     return this.usersService.remove(uuid);
