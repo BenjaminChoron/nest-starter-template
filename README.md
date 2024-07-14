@@ -10,6 +10,7 @@ This is a starter template for a NestJS application. It includes a basic setup f
 - [TypeORM](https://typeorm.io/)
 - [SQLite](https://www.sqlite.org/index.html)
 - [JWT](https://jwt.io/)
+- [Swagger](https://swagger.io/)
 - ...
 
 ## Installation
@@ -49,3 +50,9 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Documentation
+
+To open Swagger documentation of the API routes, run the app and go to `http://localhost:3000/swagger` in your browser.
+
+![Swagger screenshot](/assets/screenshots/swagger.png)
