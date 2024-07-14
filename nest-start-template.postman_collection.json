@@ -10,71 +10,17 @@
 			"name": "users",
 			"item": [
 				{
-					"name": "signup",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/signup"
-					},
-					"response": []
-				},
-				{
-					"name": "signout",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": "{{BASE_URL}}/auth/signout"
-					},
-					"response": []
-				},
-				{
-					"name": "signin",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/signin"
-					},
-					"response": []
-				},
-				{
-					"name": "whoami",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": "{{BASE_URL}}/auth/whoami"
-					},
-					"response": []
-				},
-				{
 					"name": "findByUuid",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/auth/:uuid",
+							"raw": "{{BASE_URL}}/users/:uuid",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
-								"auth",
+								"users",
 								":uuid"
 							],
 							"variable": [
@@ -93,17 +39,17 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/auth?email=test@mail.com",
+							"raw": "{{BASE_URL}}/users?email=",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
-								"auth"
+								"users"
 							],
 							"query": [
 								{
 									"key": "email",
-									"value": "test@mail.com"
+									"value": ""
 								}
 							]
 						}
@@ -113,11 +59,17 @@
 				{
 					"name": "updateUser",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{BEARER_TOKEN}}"
+							}
+						},
 						"method": "PATCH",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"test3@mail.com\"\n}",
+							"raw": "{\n    \"email\": \"test1@mail.com\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -125,12 +77,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{BASE_URL}}/auth/:uuid",
+							"raw": "{{BASE_URL}}/users/:uuid",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
-								"auth",
+								"users",
 								":uuid"
 							],
 							"variable": [
@@ -146,26 +98,151 @@
 				{
 					"name": "removeUser",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{BEARER_TOKEN}}"
+							}
+						},
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{BASE_URL}}/auth/:uuid",
+							"raw": "{{BASE_URL}}/users/:uuid",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
-								"auth",
+								"users",
 								":uuid"
 							],
 							"variable": [
 								{
 									"key": "uuid",
-									"value": "a4f9b63c-c501-46fb-8c59-46784da5b3a1"
+									"value": ""
 								}
 							]
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body has access_token property\", function () {",
+									"  const responseData = pm.response.json();",
+									"  pm.expect(responseData).to.have.property('access_token');",
+									"  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.access_token);",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{BASE_URL}}/auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response status code is 200\", function () {",
+									"  pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response body has access_token property\", function () {",
+									"  const responseData = pm.response.json();",
+									"  pm.expect(responseData).to.have.property('access_token');",
+									"  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.access_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@mail.com\",\n    \"password\": \"Pa$$w0rd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{BASE_URL}}/auth/signup"
+					},
+					"response": []
+				},
+				{
+					"name": "whoami",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{BEARER_TOKEN}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{BASE_URL}}/auth/whoami"
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		}
@@ -196,6 +273,11 @@
 		{
 			"key": "BASE_URL",
 			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "BEARER_TOKEN",
+			"value": "",
 			"type": "string"
 		}
 	]
