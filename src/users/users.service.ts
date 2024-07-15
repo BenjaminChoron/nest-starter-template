@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from './user.entity';
+import { ImagesService } from '../utils/images.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private repo: Repository<User>,
+    private imagesService: ImagesService,
   ) {}
 
   create(email: string, password: string) {
@@ -37,6 +39,11 @@ export class UsersService {
 
     if (!user) {
       throw new NotFoundException(`User with uuid ${uuid} not found`);
+    }
+
+    if (attrs.avatar) {
+      const { secure_url } = await this.imagesService.upload(attrs.avatar);
+      attrs.avatar = secure_url;
     }
 
     Object.assign(user, attrs);
