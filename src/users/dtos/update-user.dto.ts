@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsOptional,
@@ -6,10 +7,18 @@ import {
 } from 'class-validator';
 
 export class UpdateUserDto {
+  @ApiProperty({
+    required: false,
+    example: 'test@mail.com',
+  })
   @IsEmail()
   @IsOptional()
   email: string;
 
+  @ApiProperty({
+    required: false,
+    example: 'Password123!',
+  })
   @IsStrongPassword({
     minLength: 8,
     minLowercase: 1,
@@ -20,6 +29,10 @@ export class UpdateUserDto {
   @IsOptional()
   password: string;
 
+  @ApiProperty({
+    required: false,
+    example: 'https://example.com/avatar.png',
+  })
   @IsString()
   @IsOptional()
   avatar: string;

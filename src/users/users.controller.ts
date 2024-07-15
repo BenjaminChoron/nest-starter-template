@@ -16,6 +16,7 @@ import { UsersService } from './users.service';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
@@ -79,6 +80,7 @@ export class UsersController {
   @Patch('/:uuid')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a user' })
+  @ApiBody({ type: UpdateUserDto })
   @ApiParam({ name: 'uuid', required: true })
   @ApiResponse({
     status: HttpStatus.OK,
