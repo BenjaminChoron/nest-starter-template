@@ -21,7 +21,7 @@ export class ImagesService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader.upload(
         filePath,
-        { folder: 'test' },
+        { folder: process.env.CLOUDINARY_FOLDER },
         (error, result) => {
           if (error) return reject(error);
           resolve(result);
