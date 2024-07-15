@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a starter template for a NestJS application. It includes a basic setup for a REST API with a SQLite database and user authentication.
+This is a starter template for a NestJS application. It includes a basic setup for a REST API with a SQLite database, user JWT authentication, swagger documentation and images upload.
 
 ## Stack
 
@@ -11,6 +11,7 @@ This is a starter template for a NestJS application. It includes a basic setup f
 - [SQLite](https://www.sqlite.org/index.html)
 - [JWT](https://jwt.io/)
 - [Swagger](https://swagger.io/)
+- [Cloudinary](https://cloudinary.com/)
 - ...
 
 ## Installation
