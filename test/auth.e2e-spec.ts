@@ -33,9 +33,9 @@ describe('AppController (e2e)', () => {
       .send({ email: testEmail, password: testPassword })
       .expect(201)
       .then((res) => {
-        const { uuid, email } = res.body;
-        expect(uuid).toBeDefined();
-        expect(email).toEqual(testEmail);
+        const { access_token } = res.body;
+        expect(access_token).toBeDefined();
+        expect(access_token).toEqual(expect.any(String));
       });
   });
 
@@ -47,11 +47,9 @@ describe('AppController (e2e)', () => {
       .send({ email: anotherEmail, password: testPassword })
       .expect(201);
 
-    const cookie = res.get('Set-Cookie');
-
     const { body } = await request(app.getHttpServer())
       .get('/auth/whoami')
-      .set('Cookie', cookie)
+      .set('Authorization', `Bearer ${res.body.access_token}`)
       .expect(200);
 
     expect(body.email).toEqual(anotherEmail);
@@ -59,90 +57,27 @@ describe('AppController (e2e)', () => {
 
   it('handles a signin request', () => {
     return request(app.getHttpServer())
-      .post('/auth/signin')
+      .post('/auth/login')
       .send({ email: testEmail, password: testPassword })
       .expect(201)
       .then((res) => {
-        const { uuid, email } = res.body;
-        expect(uuid).toBeDefined();
-        expect(email).toEqual(testEmail);
+        const { access_token } = res.body;
+        expect(access_token).toBeDefined();
+        expect(access_token).toEqual(expect.any(String));
       });
   });
 
-  it('handles a signout request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/signout')
-      .expect(201)
-      .then((res) => {
-        expect(res.body).toEqual({});
-      });
-  });
-
-  it('should not be possible to update a user if not signed in', async () => {
-    const newEmail = 'test2@mail.com';
-
+  it('login user then get the current user infos', async () => {
     const res = await request(app.getHttpServer())
-      .post('/auth/signin')
+      .post('/auth/login')
       .send({ email: testEmail, password: testPassword })
       .expect(201);
-
-    const cookie = null;
-    const userUuid = res.body.uuid;
-
-    return request(app.getHttpServer())
-      .patch(`/auth/${userUuid}`)
-      .set('Cookie', cookie)
-      .send({ email: newEmail })
-      .expect(403);
-  });
-
-  it('should be possible to update a user if signed in', async () => {
-    const newEmail = 'test2@mail.com';
-
-    const res = await request(app.getHttpServer())
-      .post('/auth/signin')
-      .send({ email: testEmail, password: testPassword })
-      .expect(201);
-
-    const cookie = res.get('Set-Cookie');
-    const userUuid = res.body.uuid;
 
     const { body } = await request(app.getHttpServer())
-      .patch(`/auth/${userUuid}`)
-      .set('Cookie', cookie)
-      .send({ email: newEmail })
+      .get('/auth/whoami')
+      .set('Authorization', `Bearer ${res.body.access_token}`)
       .expect(200);
 
-    expect(body.email).toEqual(newEmail);
-  });
-
-  it('should not be possible to delete a user if not signed in', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/signin')
-      .send({ email: 'test2@mail.com', password: testPassword })
-      .expect(201);
-
-    const cookie = null;
-    const userUuid = res.body.uuid;
-
-    return request(app.getHttpServer())
-      .delete(`/auth/${userUuid}`)
-      .set('Cookie', cookie)
-      .expect(403);
-  });
-
-  it('should be possible to delete a user if signed in', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/signin')
-      .send({ email: 'test2@mail.com', password: testPassword })
-      .expect(201);
-
-    const cookie = res.get('Set-Cookie');
-    const userUuid = res.body.uuid;
-
-    return request(app.getHttpServer())
-      .delete(`/auth/${userUuid}`)
-      .set('Cookie', cookie)
-      .expect(200);
+    expect(body.email).toEqual(testEmail);
   });
 });
