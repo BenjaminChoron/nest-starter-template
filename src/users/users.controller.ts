@@ -23,7 +23,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
@@ -75,7 +75,7 @@ export class UsersController {
     return user;
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch('/:uuid')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a user' })
@@ -93,7 +93,7 @@ export class UsersController {
     return this.usersService.update(uuid, body);
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete('/:uuid')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a user' })

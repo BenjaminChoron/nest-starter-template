@@ -9,12 +9,10 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpInboundDto } from './dtos/sign-up.inbound.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiNotFoundResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -22,6 +20,8 @@ import {
 } from '@nestjs/swagger';
 import { LoggedUserOutboundDto } from './dtos/logged-user.outbound.dto';
 import { GetProfileOutboundDto } from './dtos/get-profile.outbound.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { LocalGuard } from './guards/local-auth.guard';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -44,6 +44,7 @@ export class AuthController {
     return this.authService.signup(body.email, body.password);
   }
 
+  @UseGuards(LocalGuard)
   @Post('login')
   @ApiOperation({ summary: 'Log user in' })
   @ApiBody({ type: SignUpInboundDto })
@@ -52,19 +53,18 @@ export class AuthController {
     description: 'The user has successfully logged in.',
     type: LoggedUserOutboundDto,
   })
-  @ApiNotFoundResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'The user was not found.',
-  })
   @ApiUnauthorizedResponse({
     status: HttpStatus.UNAUTHORIZED,
-    description: 'The password is incorrect.',
+    description: 'The credentials are invalid.',
   })
   signin(@Body() body: SignUpInboundDto) {
-    return this.authService.signin(body.email, body.password);
+    return this.authService.authenticate({
+      email: body.email,
+      password: body.password,
+    });
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('whoami')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current user' })
