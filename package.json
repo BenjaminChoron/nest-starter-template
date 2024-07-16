@@ -21,7 +21,7 @@
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --maxWorkers=1",
     "typeorm": "npm run build && npx typeorm -d dist/config/data.source.js",
     "migration:generate": "npm run typeorm -- migration:generate",
-    "migration:run": "npm run typeorm -- migration:run"
+    "migration:run": "cross-env NODE_ENV=development npm run typeorm -- migration:run && cross-env NODE_ENV=test npm run typeorm -- migration:run"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
