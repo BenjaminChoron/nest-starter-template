@@ -13,7 +13,7 @@ const scrypt = promisify(_scrypt);
 
 type AuthInput = { email: string; password: string };
 type Payload = { uuid: string; email: string };
-type AuthResult = { access_token: string };
+type AuthResult = { accessToken: string };
 
 @Injectable()
 export class AuthService {
@@ -56,7 +56,7 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(tokenPayload);
 
     return {
-      access_token: accessToken,
+      accessToken: accessToken,
     };
   }
 

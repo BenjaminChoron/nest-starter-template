@@ -5,5 +5,5 @@ export class LoggedUserOutboundDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  access_token: string;
+  accessToken: string;
 }

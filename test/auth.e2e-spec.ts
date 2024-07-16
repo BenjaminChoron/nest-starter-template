@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
+import { DataSource } from 'typeorm';
 
 import { AppModule } from './../src/app.module';
-import { DataSource } from 'typeorm';
 import { User } from './../src/users/user.entity';
 
 describe('AppController (e2e)', () => {
@@ -32,9 +32,9 @@ describe('AppController (e2e)', () => {
       .send({ email: testEmail, password: testPassword })
       .expect(201)
       .then((res) => {
-        const { access_token } = res.body;
-        expect(access_token).toBeDefined();
-        expect(access_token).toEqual(expect.any(String));
+        const { accessToken } = res.body;
+        expect(accessToken).toBeDefined();
+        expect(accessToken).toEqual(expect.any(String));
       });
   });
 
@@ -48,7 +48,7 @@ describe('AppController (e2e)', () => {
 
     const { body } = await request(app.getHttpServer())
       .get('/auth/whoami')
-      .set('Authorization', `Bearer ${res.body.access_token}`)
+      .set('Authorization', `Bearer ${res.body.accessToken}`)
       .expect(200);
 
     expect(body.email).toEqual(anotherEmail);
@@ -60,9 +60,9 @@ describe('AppController (e2e)', () => {
       .send({ email: testEmail, password: testPassword })
       .expect(201)
       .then((res) => {
-        const { access_token } = res.body;
-        expect(access_token).toBeDefined();
-        expect(access_token).toEqual(expect.any(String));
+        const { accessToken } = res.body;
+        expect(accessToken).toBeDefined();
+        expect(accessToken).toEqual(expect.any(String));
       });
   });
 
@@ -74,7 +74,7 @@ describe('AppController (e2e)', () => {
 
     const { body } = await request(app.getHttpServer())
       .get('/auth/whoami')
-      .set('Authorization', `Bearer ${res.body.access_token}`)
+      .set('Authorization', `Bearer ${res.body.accessToken}`)
       .expect(200);
 
     expect(body.email).toEqual(testEmail);

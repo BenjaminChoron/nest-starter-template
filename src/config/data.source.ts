@@ -1,4 +1,6 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
 
 const isTestEnv = process.env.NODE_ENV === 'test';

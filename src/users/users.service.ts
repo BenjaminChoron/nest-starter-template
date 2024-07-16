@@ -46,11 +46,12 @@ export class UsersService {
     }
 
     if (attrs.avatar) {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       const { secure_url } = await this.imagesService.upload(attrs.avatar);
       attrs.avatar = secure_url;
     }
 
-    attrs.updated_at = new Date();
+    attrs.updatedAt = new Date();
 
     Object.assign(user, attrs);
 

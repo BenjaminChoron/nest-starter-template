@@ -45,13 +45,13 @@ describe('AuthService', () => {
         const tokenPayload = { sub: user.uuid, email: user.email };
         const accessToken = await jwtService.signAsync(tokenPayload);
 
-        return Promise.resolve({ access_token: accessToken });
+        return Promise.resolve({ accessToken: accessToken });
       },
       signup: async (email: string, password: string) => {
         const foundUser = users.find((user) => user.email === email);
 
         if (foundUser) {
-          Promise.reject();
+          void Promise.reject();
         }
 
         const user = await fakeUsersService.create(email, password);
@@ -90,16 +90,18 @@ describe('AuthService', () => {
   it('should return an access token when login', async () => {
     const user = { uuid: 'fake-uuid', email: 'test@mail.com' };
     const result = await fakeAuthService.signIn(user);
-    expect(result).toEqual({ access_token: 'testToken' });
+    expect(result).toEqual({ accessToken: 'testToken' });
   });
 
   it('should reject when creating a user with an existing email', async () => {
-    await expect(fakeAuthService.signup('test@mail.com', 'pAssw0rd!')).rejects;
+    await expect(
+      fakeAuthService.signup('test@mail.com', 'pAssw0rd!'),
+    ).rejects.toThrow();
   });
 
   it('should create a new user and return access token', async () => {
     const result = await fakeAuthService.signup('test3@mail.com', 'pAssw0rd!');
-    expect(result).toEqual({ access_token: 'testToken' });
+    expect(result).toEqual({ accessToken: 'testToken' });
 
     const user = await fakeUsersService.findByEmail('test3@mail.com');
     expect(user).toBeDefined();

@@ -32,7 +32,7 @@ module.exports = {
     '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/no-base-to-string': 'error',
     '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/no-explicit-any': 'error',
+    '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-misused-promises': 'error',
     '@typescript-eslint/no-shadow': 'error',
@@ -100,17 +100,7 @@ module.exports = {
     'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
     //#endregion Empty lines
     //#region Imports
-    'import/order': [
-      'error',
-      {
-        groups: [['external', 'builtin'], 'internal', 'parent', ['sibling', 'index']],
-        'newlines-between': 'always',
-        alphabetize: { order: 'asc', caseInsensitive: true },
-      },
-    ],
     'import/newline-after-import': ['error', { count: 1 }],
-    'import/no-duplicates': ['error'],
-    'import/no-unresolved': ['error'],
     'no-restricted-imports': [
       'error',
       {

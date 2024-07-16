@@ -19,7 +19,7 @@ export class ImagesService {
     filePath: string,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.upload(
+      void cloudinary.uploader.upload(
         filePath,
         { folder: process.env.CLOUDINARY_FOLDER },
         (error, result) => {
