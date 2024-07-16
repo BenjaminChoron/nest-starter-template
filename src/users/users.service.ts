@@ -50,6 +50,8 @@ export class UsersService {
       attrs.avatar = secure_url;
     }
 
+    attrs.updated_at = new Date();
+
     Object.assign(user, attrs);
 
     return this.repo.save(user);
