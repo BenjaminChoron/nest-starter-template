@@ -29,7 +29,7 @@ $ npm install
 
 ## Running the app
 
-- First, you need to create `.env.development` and `.env.test` files at the root of the project using the `.env.example` file as a template.
+- First, you need to create a `.env`file at the root of the project using the `.env.example` file as a template.
 - Then, you need to run `docker-compose up` at the root of the project to start the databases containers.
 - Then, you can run the app with the following commands:
 
