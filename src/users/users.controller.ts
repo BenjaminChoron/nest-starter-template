@@ -13,7 +13,7 @@ import {
 import { Serialize } from '../interceptors/serialize.interceptor';
 import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dtos/update-user.dto';
+import { UpdateUserOutboundDto } from './dtos/update-user.outbound.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -80,7 +80,7 @@ export class UsersController {
   @Patch('/:uuid')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a user' })
-  @ApiBody({ type: UpdateUserDto })
+  @ApiBody({ type: UpdateUserOutboundDto })
   @ApiParam({ name: 'uuid', required: true })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -91,7 +91,7 @@ export class UsersController {
     status: HttpStatus.NOT_FOUND,
     description: 'The user was not found.',
   })
-  updateUser(@Param('uuid') uuid: string, @Body() body: UpdateUserDto) {
+  updateUser(@Param('uuid') uuid: string, @Body() body: UpdateUserOutboundDto) {
     return this.usersService.update(uuid, body);
   }
 

@@ -6,7 +6,7 @@ import {
   IsStrongPassword,
 } from 'class-validator';
 
-export class UpdateUserDto {
+export class UpdateUserOutboundDto {
   @ApiProperty({
     required: false,
     example: 'test@mail.com',

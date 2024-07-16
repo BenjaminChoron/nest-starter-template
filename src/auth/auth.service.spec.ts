@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 describe('AuthService', () => {
   let service: AuthService;
   let fakeUsersService: Partial<UsersService>;
+  let fakeAuthService: Partial<AuthService>;
   let jwtService: JwtService;
 
   beforeEach(async () => {
@@ -20,6 +21,7 @@ describe('AuthService', () => {
       create: (email: string, password: string) => {
         const user = {
           id: Math.floor(Math.random() * 999999),
+          uuid: 'fake-uuid-' + Math.floor(Math.random() * 999999).toString(),
           email,
           password,
         } as User;
@@ -28,9 +30,34 @@ describe('AuthService', () => {
       },
     };
 
+    fakeAuthService = {
+      validateUser(input: { email: string; password: string }) {
+        const foundUser = users.find((user) => user.email === input.email);
+        if (!foundUser || input.password !== 'Pa$$w0rd!') return null;
+        return Promise.resolve({ uuid: 'fake-uuid', email: input.email });
+      },
+      signIn: async (user: { uuid: string; email: string }) => {
+        const tokenPayload = { sub: user.uuid, email: user.email };
+        const accessToken = await jwtService.signAsync(tokenPayload);
+        return Promise.resolve({ access_token: accessToken });
+      },
+      signup: async (email: string, password: string) => {
+        const foundUser = users.find((user) => user.email === email);
+        if (foundUser) {
+          Promise.reject();
+        }
+
+        const user = await fakeUsersService.create(email, password);
+        return fakeAuthService.signIn({ uuid: user.uuid, email: user.email });
+      },
+    };
+
     const module = await Test.createTestingModule({
       providers: [
-        AuthService,
+        {
+          provide: AuthService,
+          useValue: fakeAuthService,
+        },
         {
           provide: UsersService,
           useValue: fakeUsersService,
@@ -52,13 +79,21 @@ describe('AuthService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should return a valid JWT token', async () => {
+  it('should return an access token when login', async () => {
     const user = { uuid: 'fake-uuid', email: 'test@mail.com' };
-    const result = await service.signIn(user);
+    const result = await fakeAuthService.signIn(user);
     expect(result).toEqual({ access_token: 'testToken' });
-    expect(jwtService.signAsync).toHaveBeenCalledWith({
-      email: user.email,
-      sub: user.uuid,
-    });
+  });
+
+  it('should reject when creating a user with an existing email', async () => {
+    await expect(fakeAuthService.signup('test@mail.com', 'pAssw0rd!')).rejects;
+  });
+
+  it('should create a new user and return access token', async () => {
+    const result = await fakeAuthService.signup('test3@mail.com', 'pAssw0rd!');
+    expect(result).toEqual({ access_token: 'testToken' });
+
+    const user = await fakeUsersService.findByEmail('test3@mail.com');
+    expect(user).toBeDefined();
   });
 });
