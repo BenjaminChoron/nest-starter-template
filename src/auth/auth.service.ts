@@ -4,8 +4,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { scrypt as _scrypt, randomBytes } from 'crypto';
 import { promisify } from 'util';
-import { randomBytes, scrypt as _scrypt } from 'crypto';
+
 import { UsersService } from '../users/users.service';
 
 const scrypt = promisify(_scrypt);
@@ -33,6 +34,7 @@ export class AuthService {
 
   async validateUser(input: AuthInput): Promise<Payload | null> {
     const user = await this.usersService.findByEmail(input.email);
+
     if (!user) {
       return null;
     }
@@ -60,6 +62,7 @@ export class AuthService {
 
   async signup(email: string, password: string): Promise<AuthResult> {
     const usersWithSameEmail = await this.usersService.findByEmail(email);
+
     if (usersWithSameEmail) {
       throw new BadRequestException('Email already exists');
     }

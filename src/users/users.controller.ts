@@ -10,10 +10,6 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Serialize } from '../interceptors/serialize.interceptor';
-import { UserDto } from './dtos/user.dto';
-import { UsersService } from './users.service';
-import { UpdateUserOutboundDto } from './dtos/update-user.outbound.dto';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -24,7 +20,13 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Serialize } from '../interceptors/serialize.interceptor';
+
+import { UpdateUserOutboundDto } from './dtos/update-user.outbound.dto';
+import { UserDto } from './dtos/user.dto';
+import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')

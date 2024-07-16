@@ -1,8 +1,10 @@
-import { Test } from '@nestjs/testing';
-import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
-import { User } from '../users/user.entity';
 import { JwtService } from '@nestjs/jwt';
+import { Test } from '@nestjs/testing';
+
+import { User } from '../users/user.entity';
+import { UsersService } from '../users/users.service';
+
+import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -16,6 +18,7 @@ describe('AuthService', () => {
     fakeUsersService = {
       findByEmail: (email: string) => {
         const foundUser = users.find((user) => user.email === email);
+
         return Promise.resolve(foundUser);
       },
       create: (email: string, password: string) => {
@@ -26,6 +29,7 @@ describe('AuthService', () => {
           password,
         } as User;
         users.push(user);
+
         return Promise.resolve(user);
       },
     };
@@ -34,20 +38,24 @@ describe('AuthService', () => {
       validateUser(input: { email: string; password: string }) {
         const foundUser = users.find((user) => user.email === input.email);
         if (!foundUser || input.password !== 'Pa$$w0rd!') return null;
+
         return Promise.resolve({ uuid: 'fake-uuid', email: input.email });
       },
       signIn: async (user: { uuid: string; email: string }) => {
         const tokenPayload = { sub: user.uuid, email: user.email };
         const accessToken = await jwtService.signAsync(tokenPayload);
+
         return Promise.resolve({ access_token: accessToken });
       },
       signup: async (email: string, password: string) => {
         const foundUser = users.find((user) => user.email === email);
+
         if (foundUser) {
           Promise.reject();
         }
 
         const user = await fakeUsersService.create(email, password);
+
         return fakeAuthService.signIn({ uuid: user.uuid, email: user.email });
       },
     };

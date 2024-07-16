@@ -2,8 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { User } from './user.entity';
+
 import { ImagesService } from '../utils/images.service';
+
+import { User } from './user.entity';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +26,7 @@ export class UsersService {
     if (!uuid) {
       return null;
     }
+
     return this.repo.findOneBy({ uuid });
   }
 
@@ -31,6 +34,7 @@ export class UsersService {
     if (!email) {
       return null;
     }
+
     return this.repo.findOneBy({ email });
   }
 

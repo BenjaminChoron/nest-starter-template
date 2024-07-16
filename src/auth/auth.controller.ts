@@ -7,8 +7,6 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { SignUpInboundDto } from './dtos/sign-up.inbound.dto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -18,8 +16,11 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { LoggedUserOutboundDto } from './dtos/logged-user.outbound.dto';
+
+import { AuthService } from './auth.service';
 import { GetProfileOutboundDto } from './dtos/get-profile.outbound.dto';
+import { LoggedUserOutboundDto } from './dtos/logged-user.outbound.dto';
+import { SignUpInboundDto } from './dtos/sign-up.inbound.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalGuard } from './guards/local-auth.guard';
 
