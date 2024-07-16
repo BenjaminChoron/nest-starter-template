@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  database:
+    container_name: postgres_dev
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: dev_db
+    ports:
+      - '5432:5432'
+  database-test:
+    container_name: postgres_test
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: test_db
+    ports:
+      - '5433:5432'

@@ -2,13 +2,14 @@
 
 ## Description
 
-This is a starter template for a NestJS application. It includes a basic setup for a REST API with a SQLite database, user JWT authentication, swagger documentation and images upload.
+This is a starter template for a NestJS application. It includes a basic setup for a REST API with a PostgreSQL database on a docker container, user JWT authentication, swagger documentation and images upload.
 
 ## Stack
 
 - [NestJS](https://nestjs.com/)
+- [Docker](https://www.docker.com/)
+- [PostgreSQL](https://www.postgresql.org/)
 - [TypeORM](https://typeorm.io/)
-- [SQLite](https://www.sqlite.org/index.html)
 - [JWT](https://jwt.io/)
 - [Swagger](https://swagger.io/)
 - [Cloudinary](https://cloudinary.com/)
@@ -27,6 +28,10 @@ $ npm install
 ```
 
 ## Running the app
+
+- First, you need to create `.env.development` and `.env.test` files at the root of the project using the `.env.example` file as a template.
+- Then, you need to run `docker-compose up` at the root of the project to start the databases containers.
+- Then, you can run the app with the following commands:
 
 ```bash
 # development

@@ -3,8 +3,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
@@ -22,19 +20,22 @@ const cookieSession = require('cookie-session');
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         return {
-          type: 'sqlite',
-          database: config.get<string>('DB_NAME'),
-          synchronize: true,
+          type: 'postgres',
+          host: config.get<string>('POSTGRES_HOST'),
+          port: config.get<number>('POSTGRES_PORT'),
+          username: config.get<string>('POSTGRES_USER'),
+          password: config.get<string>('POSTGRES_PASSWORD'),
+          database: config.get<string>('POSTGRES_DB'),
           entities: [User],
+          synchronize: true,
         };
       },
     }),
     UsersModule,
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [
-    AppService, // Globally scoped pipe
     {
       provide: APP_PIPE,
       useValue: new ValidationPipe({

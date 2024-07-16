@@ -1,23 +1,16 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { rm } from 'fs';
-import { join } from 'path';
 import * as request from 'supertest';
 
 import { AppModule } from './../src/app.module';
+import { DataSource } from 'typeorm';
+import { User } from './../src/users/user.entity';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
 
   const testEmail = 'test@mail.com';
   const testPassword = 'Pa$$w0rd';
-
-  beforeAll(async () => {
-    // Remove the test database before running the tests
-    try {
-      await rm(join(__dirname, '..', 'test.sqlite'), () => null);
-    } catch (err) {}
-  });
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,6 +19,11 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+  });
+
+  afterAll(async () => {
+    const dataSource = app.get(DataSource);
+    await dataSource.createQueryBuilder().delete().from(User).execute();
   });
 
   it('handles a signup request', () => {
