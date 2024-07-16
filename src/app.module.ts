@@ -1,39 +1,13 @@
-import { MiddlewareConsumer, Module, ValidationPipe } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Module, ValidationPipe } from '@nestjs/common';
 import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/user.entity';
 import { UsersModule } from './users/users.module';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const cookieSession = require('cookie-session');
+import { dbdatasource } from './config/data.source';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV}`,
-    }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          type: 'postgres',
-          host: config.get<string>('POSTGRES_HOST'),
-          port: config.get<number>('POSTGRES_PORT'),
-          username: config.get<string>('POSTGRES_USER'),
-          password: config.get<string>('POSTGRES_PASSWORD'),
-          database: config.get<string>('POSTGRES_DB'),
-          entities: [User],
-          synchronize: true,
-        };
-      },
-    }),
-    UsersModule,
-    AuthModule,
-  ],
+  imports: [TypeOrmModule.forRoot(dbdatasource), UsersModule, AuthModule],
   controllers: [],
   providers: [
     {
@@ -44,17 +18,4 @@ const cookieSession = require('cookie-session');
     },
   ],
 })
-export class AppModule {
-  constructor(private configService: ConfigService) {}
-
-  // Globally scoped middleware
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(
-        cookieSession({
-          keys: [this.configService.get('COOKIE_KEY')],
-        }),
-      )
-      .forRoutes('*');
-  }
-}
+export class AppModule {}
