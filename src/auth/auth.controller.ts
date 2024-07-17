@@ -50,7 +50,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Log user in' })
   @ApiBody({ type: SignUpInboundDto })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: 'The user has successfully logged in.',
     type: LoggedUserOutboundDto,
   })
@@ -70,7 +70,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current user' })
   @ApiResponse({
-    status: HttpStatus.OK,
+    status: HttpStatus.CREATED,
     description: 'The user has successfully been retrieved.',
     type: GetProfileOutboundDto,
   })
