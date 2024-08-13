@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Post,
   Request,
   UseGuards,
@@ -11,8 +10,9 @@ import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
+  ApiCreatedResponse,
+  ApiOkResponse,
   ApiOperation,
-  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -32,13 +32,11 @@ export class AuthController {
   @Post('signup')
   @ApiOperation({ summary: 'Create a new user' })
   @ApiBody({ type: SignUpInboundDto })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
+  @ApiCreatedResponse({
     description: 'The record has been successfully created.',
     type: LoggedUserOutboundDto,
   })
   @ApiBadRequestResponse({
-    status: HttpStatus.BAD_REQUEST,
     description: 'The email already exists.',
   })
   createUser(@Body() body: SignUpInboundDto) {
@@ -49,13 +47,11 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Log user in' })
   @ApiBody({ type: SignUpInboundDto })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiCreatedResponse({
     description: 'The user has successfully logged in.',
     type: LoggedUserOutboundDto,
   })
   @ApiUnauthorizedResponse({
-    status: HttpStatus.UNAUTHORIZED,
     description: 'The credentials are invalid.',
   })
   signin(@Body() body: SignUpInboundDto) {
@@ -69,13 +65,11 @@ export class AuthController {
   @Get('whoami')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get the current user' })
-  @ApiResponse({
-    status: HttpStatus.OK,
+  @ApiOkResponse({
     description: 'The user has successfully been retrieved.',
     type: GetProfileOutboundDto,
   })
   @ApiUnauthorizedResponse({
-    status: HttpStatus.UNAUTHORIZED,
     description: 'The user is not authenticated.',
   })
   getProfile(@Request() req: any) {

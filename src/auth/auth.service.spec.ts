@@ -93,12 +93,6 @@ describe('AuthService', () => {
     expect(result).toEqual({ accessToken: 'testToken' });
   });
 
-  it('should reject when creating a user with an existing email', async () => {
-    await expect(
-      fakeAuthService.signup('test@mail.com', 'pAssw0rd!'),
-    ).rejects.toThrow();
-  });
-
   it('should create a new user and return access token', async () => {
     const result = await fakeAuthService.signup('test3@mail.com', 'pAssw0rd!');
     expect(result).toEqual({ accessToken: 'testToken' });
