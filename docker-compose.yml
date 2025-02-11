@@ -1,22 +1,54 @@
-version: '3.8'
+x-postgres-common: &postgres-common
+  image: postgres:15-alpine
+  restart: always
+  healthcheck:
+    test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+    interval: 10s
+    timeout: 5s
+    retries: 5
+  deploy:
+    resources:
+      limits:
+        memory: 1G
+        cpus: '1'
+      reservations:
+        memory: 256M
+  environment: &common-env
+    POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    TZ: UTC
+
 services:
   database:
+    <<: *postgres-common
     container_name: postgres_dev
-    image: postgres
-    restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: dev_db
+      <<: *common-env
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     ports:
-      - '5432:5432'
+      - '${DATABASE_PORT}:5432'
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
   database-test:
+    <<: *postgres-common
     container_name: postgres_test
-    image: postgres
-    restart: always
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: test_db
+      <<: *common-env
+      POSTGRES_USER: ${TEST_DATABASE_USER}
+      POSTGRES_PASSWORD: ${TEST_DATABASE_PASSWORD}
+      POSTGRES_DB: ${TEST_DATABASE_NAME}
     ports:
-      - '5433:5432'
+      - '${TEST_DATABASE_PORT}:5432'
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_dev_data:
+    name: postgres_dev_data
+  postgres_test_data:
+    name: postgres_test_data
