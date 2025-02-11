@@ -1,10 +1,14 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { config } from 'dotenv';
+import { join } from 'path';
 
 config();
 
 const getEnvVar = (prod: string, test: string): string =>
   process.env.NODE_ENV === 'test' ? process.env[test] : process.env[prod];
+
+const isDevelopment = process.env.NODE_ENV === 'development';
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const dbdatasource: DataSourceOptions = {
   type: 'postgres',
@@ -14,16 +18,28 @@ export const dbdatasource: DataSourceOptions = {
   username: getEnvVar('DATABASE_USER', 'TEST_DATABASE_USER'),
   password: getEnvVar('DATABASE_PASSWORD', 'TEST_DATABASE_PASSWORD'),
   synchronize: false,
-  logging: process.env.NODE_ENV !== 'production',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/database/migrations/*.js'],
+  logging: isDevelopment,
+  logger: isDevelopment ? 'advanced-console' : 'simple-console',
+  maxQueryExecutionTime: isDevelopment ? 1000 : 2000, // Log slow queries
+  entities: [join(__dirname, '../**/*.entity.{ts,js}')],
+  migrations: [join(__dirname, './migrations/*.{ts,js}')],
   migrationsTableName: 'migrations',
-  ssl:
-    process.env.NODE_ENV === 'production'
-      ? {
-          rejectUnauthorized: false,
-        }
-      : false,
+  ssl: isProduction
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
+  cache: isProduction
+    ? {
+        type: 'ioredis',
+        duration: 60000, // 1 minute
+      }
+    : false,
+  extra: {
+    max: 20, // Connection pool size
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+  },
 };
 
 const dataSource = new DataSource(dbdatasource);
