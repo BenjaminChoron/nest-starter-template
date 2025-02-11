@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,6 +11,7 @@ import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { User } from 'src/users/entities/user.entity';
+import { AuthResponseDto } from './dtos/auth-response.dto';
 
 type AuthInput = { email: string; password: string };
 type AuthResult = {
@@ -35,23 +37,27 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<User> {
-    const user = await this.usersService.findByEmail(email);
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    try {
+      const user = await this.usersService.findByEmail(email);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    if (!isPasswordValid) {
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      return user;
+    } catch (error) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
-    return user;
   }
 
-  async login(user: User): Promise<AuthResult> {
+  async login(user: User): Promise<AuthResponseDto> {
     await this.usersService.updateLastLogin(user.id);
 
-    return {
+    return new AuthResponseDto({
       accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
       user: new UserResponseDto(user),
-    };
+    });
   }
 
   async signup(email: string, password: string): Promise<AuthResult> {
@@ -64,12 +70,26 @@ export class AuthService {
     return this.register({ email, password });
   }
 
-  async register(createUserDto: CreateUserDto): Promise<AuthResult> {
-    const user = await this.usersService.create(createUserDto);
+  async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
+    try {
+      const user = await this.usersService.create(createUserDto);
 
-    return {
-      accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
-      user,
-    };
+      return new AuthResponseDto({
+        accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
+        user,
+      });
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+
+      throw new UnauthorizedException('Registration failed');
+    }
+  }
+
+  async getProfile(userId: string): Promise<UserResponseDto> {
+    const user = await this.usersService.findById(userId);
+
+    return new UserResponseDto(user);
   }
 }
