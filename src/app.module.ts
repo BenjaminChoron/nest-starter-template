@@ -3,7 +3,7 @@ import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from './auth/auth.module';
-import { dbdatasource } from './config/data.source';
+import { dbdatasource } from './database/data-source';
 import { UsersModule } from './users/users.module';
 
 @Module({

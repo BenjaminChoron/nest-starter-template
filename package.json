@@ -1,8 +1,8 @@
 {
   "name": "nest-starter-template",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "NestJS Starter Template",
+  "author": "Benjamin Choron",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -19,9 +19,10 @@
     "test:cov:open": "open -a \"Google Chrome\" ./coverage/lcov-report/index.html",
     "test:debug": "cross-env NODE_ENV=test node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --maxWorkers=1",
-    "typeorm": "npm run build && npx typeorm -d dist/config/data.source.js",
+    "typeorm": "npm run build && typeorm -d dist/database/data-source.js",
     "migration:generate": "npm run typeorm -- migration:generate",
-    "migration:run": "cross-env NODE_ENV=development npm run typeorm -- migration:run && cross-env NODE_ENV=test npm run typeorm -- migration:run"
+    "migration:run": "npm run typeorm -- migration:run",
+    "migration:revert": "npm run typeorm -- migration:revert"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

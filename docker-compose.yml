@@ -31,7 +31,7 @@ services:
       - '${DATABASE_PORT}:5432'
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./src/database/init-scripts:/docker-entrypoint-initdb.d
 
   database-test:
     <<: *postgres-common
@@ -45,7 +45,7 @@ services:
       - '${TEST_DATABASE_PORT}:5432'
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - ./src/database/init-scripts:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_dev_data:

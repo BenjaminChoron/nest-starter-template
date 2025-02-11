@@ -16,7 +16,7 @@ export const dbdatasource: DataSourceOptions = {
   synchronize: false,
   logging: process.env.NODE_ENV !== 'production',
   entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/migrations/*.js'],
+  migrations: ['dist/database/migrations/*.js'],
   migrationsTableName: 'migrations',
   ssl:
     process.env.NODE_ENV === 'production'
