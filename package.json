@@ -20,7 +20,8 @@
     "test:debug": "cross-env NODE_ENV=test node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --maxWorkers=1",
     "typeorm": "npm run build && typeorm -d dist/database/data-source.js",
-    "migration:generate": "npm run typeorm -- migration:generate",
+    "migration:generate": "cross-env npm run typeorm -- migration:generate \"src/database/migrations/$npm_config_name\"",
+    "migration:create": "cross-env npm run typeorm -- migration:create \"src/database/migrations/$npm_config_name\"",
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert"
   },
