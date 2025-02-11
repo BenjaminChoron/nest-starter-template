@@ -1,70 +1,80 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { v4 as uuidv4 } from 'uuid';
-
-import { ImagesService } from '../utils/images.service';
-
-import { User } from './user.entity';
+import { User } from './entities/user.entity';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UserResponseDto } from './dtos/user-response.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private repo: Repository<User>,
-    private imagesService: ImagesService,
+    private readonly usersRepository: Repository<User>,
   ) {}
 
-  create(email: string, password: string) {
-    const uuid = uuidv4();
-    const user = this.repo.create({ uuid, email, password });
+  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    // Check if email exists
+    const existingUser = await this.usersRepository.findOneBy({
+      email: createUserDto.email.toLowerCase().trim(),
+    });
 
-    return this.repo.save(user);
-  }
-
-  findByUuid(uuid: string) {
-    if (!uuid) {
-      return null;
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
     }
 
-    return this.repo.findOneBy({ uuid });
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+
+    const user = this.usersRepository.create({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    await this.usersRepository.save(user);
+
+    return new UserResponseDto(user);
   }
 
-  findByEmail(email: string) {
-    if (!email) {
-      return null;
-    }
-
-    return this.repo.findOneBy({ email });
-  }
-
-  async update(uuid: string, attrs: Partial<User>) {
-    const user = await this.findByUuid(uuid);
+  async findById(id: string): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ id });
 
     if (!user) {
-      throw new NotFoundException(`User with uuid ${uuid} not found`);
+      throw new NotFoundException(`User with ID "${id}" not found`);
     }
 
-    if (attrs.avatar) {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { secure_url } = await this.imagesService.upload(attrs.avatar);
-      attrs.avatar = secure_url;
+    return user;
+  }
+
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.usersRepository.findOneBy({
+      email: email.toLowerCase().trim(),
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with email "${email}" not found`);
     }
 
-    attrs.updatedAt = new Date();
+    return user;
+  }
 
+  async updateLastLogin(id: string): Promise<void> {
+    await this.usersRepository.update({ id }, { lastLoginAt: new Date() });
+  }
+
+  async update(id: string, attrs: Partial<User>): Promise<UserResponseDto> {
+    const user = await this.findById(id);
     Object.assign(user, attrs);
+    await this.usersRepository.save(user);
 
-    return this.repo.save(user);
+    return new UserResponseDto(user);
   }
 
-  async remove(uuid: string) {
-    const user = await this.findByUuid(uuid);
-
-    if (!user) {
-      throw new NotFoundException(`User with uuid ${uuid} not found`);
-    }
-
-    return this.repo.remove(user);
+  async remove(id: string): Promise<void> {
+    const user = await this.findById(id);
+    await this.usersRepository.remove(user);
   }
 }

@@ -6,8 +6,9 @@ import {
   HttpStatus,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Patch,
-  Query,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -16,102 +17,110 @@ import {
   ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { Serialize } from '../interceptors/serialize.interceptor';
 
-import { UpdateUserOutboundDto } from './dtos/update-user.outbound.dto';
-import { UserDto } from './dtos/user.dto';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UserResponseDto } from './dtos/user-response.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
-@Serialize(UserDto)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-  @Get('/:uuid')
-  @ApiOperation({ summary: 'Find a user by uuid' })
-  @ApiParam({ name: 'uuid', required: true })
+  @Post()
+  @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'The user was found.',
-    type: UserDto,
+    status: 201,
+    description: 'The user has been successfully created.',
+    type: UserResponseDto,
   })
-  @ApiNotFoundResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'The user was not found.',
-  })
-  async findUserByUuid(@Param('uuid') uuid: string) {
-    const user = await this.usersService.findByUuid(uuid);
-
-    if (!user) {
-      throw new NotFoundException(`User with uuid ${uuid} not found`);
-    }
-
-    return user;
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Find a user by email' })
-  @ApiQuery({ name: 'email', required: true })
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'The user was found.',
-    type: UserDto,
+    status: 200,
+    description: 'Return the user.',
+    type: UserResponseDto,
   })
-  @ApiNotFoundResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: 'The user was not found.',
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findOne(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserResponseDto> {
+    try {
+      return await this.usersService.findById(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+  }
+
+  @Get('email/:email')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get a user by email' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the user.',
+    type: UserResponseDto,
   })
-  async findUserByEmail(@Query('email') email: string) {
+  @ApiResponse({ status: 404, description: 'User not found.' })
+  async findByEmail(@Param('email') email: string): Promise<UserResponseDto> {
     const user = await this.usersService.findByEmail(email);
 
-    if (!user) {
-      throw new NotFoundException(`User with email ${email} not found`);
-    }
-
-    return user;
+    return new UserResponseDto(user);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch('/:uuid')
+  @Patch(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a user' })
-  @ApiBody({ type: UpdateUserOutboundDto })
-  @ApiParam({ name: 'uuid', required: true })
+  @ApiBody({ type: UpdateUserDto })
+  @ApiParam({ name: 'id', required: true })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The user was updated.',
-    type: UserDto,
+    type: UserResponseDto,
   })
   @ApiNotFoundResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'The user was not found.',
   })
-  updateUser(@Param('uuid') uuid: string, @Body() body: UpdateUserOutboundDto) {
-    return this.usersService.update(uuid, body);
+  updateUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateUserDto,
+  ) {
+    return this.usersService.update(id, body);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('/:uuid')
+  @Delete(':id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove a user' })
-  @ApiParam({ name: 'uuid', required: true })
+  @ApiParam({ name: 'id', required: true })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'The user was removed.',
-    type: UserDto,
   })
   @ApiNotFoundResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'The user was not found.',
   })
-  removeUser(@Param('uuid') uuid: string) {
-    return this.usersService.remove(uuid);
+  removeUser(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.remove(id);
   }
 }

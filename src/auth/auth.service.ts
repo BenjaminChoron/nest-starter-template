@@ -4,59 +4,53 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { scrypt as _scrypt, randomBytes } from 'crypto';
-import { promisify } from 'util';
+import * as bcrypt from 'bcrypt';
 
 import { UsersService } from '../users/users.service';
-
-const scrypt = promisify(_scrypt);
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { UserResponseDto } from '../users/dtos/user-response.dto';
+import { User } from 'src/users/entities/user.entity';
 
 type AuthInput = { email: string; password: string };
-type Payload = { uuid: string; email: string };
-type AuthResult = { accessToken: string };
+type AuthResult = {
+  accessToken: string;
+  user: UserResponseDto;
+};
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
-    const user = await this.validateUser(input);
+    const user = await this.validateUser(input.email, input.password);
 
     if (!user) {
       throw new UnauthorizedException('Bad credentials');
     }
 
-    return this.signIn(user);
+    return this.login(user);
   }
 
-  async validateUser(input: AuthInput): Promise<Payload | null> {
-    const user = await this.usersService.findByEmail(input.email);
+  async validateUser(email: string, password: string): Promise<User> {
+    const user = await this.usersService.findByEmail(email);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-    if (!user) {
-      return null;
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const [salt, storedHash] = user.password.split('.');
-    const hash = (await scrypt(input.password, salt, 32)) as Buffer;
-
-    if (storedHash !== hash.toString('hex')) {
-      return null;
-    }
-
-    const payload = { uuid: user.uuid, email: user.email };
-
-    return payload;
+    return user;
   }
 
-  async signIn(user: Payload): Promise<AuthResult> {
-    const tokenPayload = { sub: user.uuid, email: user.email };
-    const accessToken = await this.jwtService.signAsync(tokenPayload);
+  async login(user: User): Promise<AuthResult> {
+    await this.usersService.updateLastLogin(user.id);
 
     return {
-      accessToken: accessToken,
+      accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
+      user: new UserResponseDto(user),
     };
   }
 
@@ -67,12 +61,15 @@ export class AuthService {
       throw new BadRequestException('Email already exists');
     }
 
-    const salt = randomBytes(8).toString('hex');
-    const hash = (await scrypt(password, salt, 32)) as Buffer;
-    const result = salt + '.' + hash.toString('hex');
+    return this.register({ email, password });
+  }
 
-    const user = await this.usersService.create(email, result);
+  async register(createUserDto: CreateUserDto): Promise<AuthResult> {
+    const user = await this.usersService.create(createUserDto);
 
-    return this.signIn(user);
+    return {
+      accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
+      user,
+    };
   }
 }

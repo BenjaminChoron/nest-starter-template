@@ -7,58 +7,46 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Request as ExpressRequest } from 'express';
+import { Public } from './decorators/public.decorator';
 
 import { AuthService } from './auth.service';
 import { GetProfileOutboundDto } from './dtos/get-profile.outbound.dto';
-import { LoggedUserOutboundDto } from './dtos/logged-user.outbound.dto';
-import { SignUpInboundDto } from './dtos/sign-up.inbound.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalGuard } from './guards/local-auth.guard';
+import { CreateUserDto } from '../users/dtos/create-user.dto';
+import { User } from '../users/entities/user.entity';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiBody({ type: SignUpInboundDto })
-  @ApiCreatedResponse({
-    description: 'The record has been successfully created.',
-    type: LoggedUserOutboundDto,
-  })
-  @ApiBadRequestResponse({
-    description: 'The email already exists.',
-  })
-  createUser(@Body() body: SignUpInboundDto) {
-    return this.authService.signup(body.email, body.password);
+  @Public()
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({ status: 201, description: 'Registration successful' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
+  async register(@Body() createUserDto: CreateUserDto) {
+    return this.authService.register(createUserDto);
   }
 
+  @Public()
   @UseGuards(LocalGuard)
   @Post('login')
-  @ApiOperation({ summary: 'Log user in' })
-  @ApiBody({ type: SignUpInboundDto })
-  @ApiCreatedResponse({
-    description: 'The user has successfully logged in.',
-    type: LoggedUserOutboundDto,
-  })
-  @ApiUnauthorizedResponse({
-    description: 'The credentials are invalid.',
-  })
-  signin(@Body() body: SignUpInboundDto) {
-    return this.authService.authenticate({
-      email: body.email,
-      password: body.password,
-    });
+  @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({ status: 201, description: 'Login successful' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async login(@Request() req: ExpressRequest & { user: User }) {
+    return this.authService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -72,7 +60,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     description: 'The user is not authenticated.',
   })
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: ExpressRequest & { user: User }) {
     return req.user;
   }
 }

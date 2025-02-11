@@ -1,25 +1,22 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: '*',
-  });
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const config = new DocumentBuilder()
-    .setTitle('Nest Starter Template')
-    .setDescription(
-      'For locked routes, please login and use the access token provided in the response. Paste it in the "Authorize" button in the top right corner.',
-    )
+    .setTitle('Users API')
+    .setDescription('The users API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document);
+  SwaggerModule.setup('api', app, document);
 
   await app.listen(3000);
 }

@@ -23,7 +23,9 @@
     "migration:generate": "cross-env npm run typeorm -- migration:generate \"src/database/migrations/$npm_config_name\"",
     "migration:create": "cross-env npm run typeorm -- migration:create \"src/database/migrations/$npm_config_name\"",
     "migration:run": "npm run typeorm -- migration:run",
-    "migration:revert": "npm run typeorm -- migration:revert"
+    "migration:revert": "npm run typeorm -- migration:revert",
+    "db:drop": "npm run typeorm -- schema:drop",
+    "db:reset": "npm run db:drop && npm run migration:revert && npm run migration:run"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -35,6 +37,7 @@
     "@nestjs/swagger": "^7.4.0",
     "@nestjs/typeorm": "^10.0.2",
     "@types/cookie-session": "^2.0.49",
+    "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cloudinary": "^2.2.0",
@@ -47,7 +50,8 @@
     "pg": "^8.12.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.20"
+    "typeorm": "^0.3.20",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -59,7 +63,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@types/supertest": "^6.0.0",
-    "@types/uuid": "^10.0.0",
+    "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.42.0",
