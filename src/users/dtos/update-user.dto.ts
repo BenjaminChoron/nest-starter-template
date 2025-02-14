@@ -21,8 +21,4 @@ export class UpdateUserDto {
     message: 'Password must contain at least one special character',
   })
   password?: string;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  avatar?: string;
 }

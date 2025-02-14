@@ -110,6 +110,30 @@
               ]
             }
           }
+        },
+        {
+          "name": "updateAvatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": "{{BASE_URL}}/users/:id/avatar"
+          }
         }
       ]
     },
