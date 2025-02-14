@@ -13,6 +13,7 @@ import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { AuthResponseDto } from './dtos/auth-response.dto';
+import { EmailService } from '../email/email.service';
 
 type AuthInput = { email: string; password: string };
 type AuthResult = {
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly emailService: EmailService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -142,5 +144,35 @@ export class AuthService {
 
   async logout(userId: string) {
     await this.usersService.removeRefreshToken(userId);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
+      });
+
+      const user = await this.usersService.findById(payload.sub);
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      await this.usersService.update(user.id, { password: hashedPassword });
+      await this.usersService.removeRefreshToken(user.id); // Invalidate all sessions
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+  }
+
+  async generateResetToken(email: string): Promise<void> {
+    const user = await this.usersService.findByEmail(email);
+
+    const token = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email },
+      {
+        secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
+        expiresIn: '15m',
+      },
+    );
+
+    await this.emailService.sendPasswordResetEmail(email, token);
   }
 }

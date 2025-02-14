@@ -8,9 +8,16 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [ConfigModule, UsersModule, PassportModule, JwtModule.register({})],
+  imports: [
+    ConfigModule,
+    UsersModule,
+    PassportModule,
+    JwtModule.register({}),
+    EmailModule,
+  ],
   providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
   controllers: [AuthController],
   exports: [AuthService],

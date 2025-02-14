@@ -28,6 +28,7 @@ import { AuthResponseDto } from './dtos/auth-response.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -100,5 +101,29 @@ export class AuthController {
   @ApiOkResponse({ description: 'Logged out successfully' })
   async logout(@Request() req: RequestWithUser) {
     await this.authService.logout(req.user.id);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset' })
+  @ApiOkResponse({ description: 'Reset token sent successfully' })
+  async forgotPassword(@Body('email') email: string) {
+    await this.authService.generateResetToken(email);
+
+    return { message: 'If the email exists, a reset token has been sent' };
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using token' })
+  @ApiOkResponse({ description: 'Password reset successfully' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    await this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
+
+    return { message: 'Password reset successfully' };
   }
 }
