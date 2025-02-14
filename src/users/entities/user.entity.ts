@@ -67,6 +67,10 @@ export class User {
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
+  @Column({ name: 'refresh_token', nullable: true })
+  @Exclude()
+  refreshToken?: string;
+
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }

@@ -130,7 +130,7 @@
                   "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test(\"Response has accessToken\", function () {",
+                  "pm.test(\"Response has tokens\", function () {",
                   "  const responseData = pm.response.json();",
                   "  pm.expect(responseData).to.have.property('accessToken');",
                   "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
@@ -166,10 +166,12 @@
                   "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test(\"Response has accessToken\", function () {",
+                  "pm.test(\"Response has tokens\", function () {",
                   "  const responseData = pm.response.json();",
                   "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
                   "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -203,6 +205,55 @@
             "method": "GET",
             "header": [],
             "url": "{{BASE_URL}}/auth/whoami"
+          }
+        },
+        {
+          "name": "refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{REFRESH_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{BASE_URL}}/auth/refresh"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tokens\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{BASE_URL}}/auth/logout"
           }
         }
       ],
@@ -252,6 +303,11 @@
     },
     {
       "key": "BEARER_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
       "value": "",
       "type": "string"
     }

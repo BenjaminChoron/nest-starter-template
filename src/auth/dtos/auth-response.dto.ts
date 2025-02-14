@@ -6,6 +6,9 @@ export class AuthResponseDto {
   accessToken: string;
 
   @ApiProperty()
+  refreshToken: string;
+
+  @ApiProperty()
   user: UserResponseDto;
 
   constructor(partial: Partial<AuthResponseDto>) {

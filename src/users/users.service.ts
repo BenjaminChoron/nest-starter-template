@@ -17,7 +17,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+  async create(createUserDto: CreateUserDto): Promise<User> {
     // Check if email exists
     const existingUser = await this.usersRepository.findOneBy({
       email: createUserDto.email.toLowerCase().trim(),
@@ -36,7 +36,7 @@ export class UsersService {
 
     await this.usersRepository.save(user);
 
-    return new UserResponseDto(user);
+    return user;
   }
 
   async findById(id: string): Promise<User> {
@@ -76,5 +76,27 @@ export class UsersService {
   async remove(id: string): Promise<void> {
     const user = await this.findById(id);
     await this.usersRepository.remove(user);
+  }
+
+  async setRefreshToken(userId: string, refreshToken: string): Promise<void> {
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.usersRepository.update(
+      { id: userId },
+      { refreshToken: hashedRefreshToken },
+    );
+  }
+
+  async validateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<boolean> {
+    const user = await this.findById(userId);
+    if (!user?.refreshToken) return false;
+
+    return bcrypt.compare(refreshToken, user.refreshToken);
+  }
+
+  async removeRefreshToken(userId: string): Promise<void> {
+    await this.usersRepository.update({ id: userId }, { refreshToken: null });
   }
 }

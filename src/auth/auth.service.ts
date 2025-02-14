@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dtos/create-user.dto';
@@ -24,6 +25,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -51,11 +53,38 @@ export class AuthService {
     }
   }
 
+  async getTokens(user: User) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        { sub: user.id, email: user.email },
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: '15m',
+        },
+      ),
+      this.jwtService.signAsync(
+        { sub: user.id, email: user.email },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: '7d',
+        },
+      ),
+    ]);
+
+    await this.usersService.setRefreshToken(user.id, refreshToken);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
   async login(user: User): Promise<AuthResponseDto> {
+    const tokens = await this.getTokens(user);
     await this.usersService.updateLastLogin(user.id);
 
     return new AuthResponseDto({
-      accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
+      ...tokens,
       user: new UserResponseDto(user),
     });
   }
@@ -73,10 +102,11 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
     try {
       const user = await this.usersService.create(createUserDto);
+      const tokens = await this.getTokens(user);
 
       return new AuthResponseDto({
-        accessToken: this.jwtService.sign({ sub: user.id, email: user.email }),
-        user,
+        ...tokens,
+        user: new UserResponseDto(user),
       });
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -91,5 +121,26 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
 
     return new UserResponseDto(user);
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.usersService.findById(userId);
+    const isValid = await this.usersService.validateRefreshToken(
+      userId,
+      refreshToken,
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+
+    const tokens = await this.getTokens(user);
+    await this.usersService.setRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+  async logout(userId: string) {
+    await this.usersService.removeRefreshToken(userId);
   }
 }

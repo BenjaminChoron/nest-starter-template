@@ -26,6 +26,8 @@ import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { User } from '../users/entities/user.entity';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { RequestWithUser } from './interfaces/request-with-user.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -75,5 +77,28 @@ export class AuthController {
     @Request() req: ExpressRequest & { user: User },
   ): Promise<UserResponseDto> {
     return this.authService.getProfile(req.user.id);
+  }
+
+  @Post('refresh')
+  @UseGuards(RefreshTokenGuard)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiCreatedResponse({
+    description: 'Tokens refreshed successfully',
+    type: AuthResponseDto,
+  })
+  @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
+  async refreshTokens(@Request() req: RequestWithUser) {
+    const user = req.user;
+    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
+
+    return this.authService.refreshTokens(user.id, refreshToken);
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiOkResponse({ description: 'Logged out successfully' })
+  async logout(@Request() req: RequestWithUser) {
+    await this.authService.logout(req.user.id);
   }
 }
