@@ -104,6 +104,12 @@ export class AuthService {
   async register(createUserDto: CreateUserDto): Promise<AuthResponseDto> {
     try {
       const user = await this.usersService.create(createUserDto);
+      const verificationToken = await this.generateEmailVerificationToken(user);
+
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        verificationToken,
+      );
       const tokens = await this.getTokens(user);
 
       return new AuthResponseDto({
@@ -117,6 +123,45 @@ export class AuthService {
 
       throw new UnauthorizedException('Registration failed');
     }
+  }
+
+  async verifyEmail(token: string): Promise<void> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('JWT_VERIFICATION_SECRET'),
+      });
+
+      const user = await this.usersService.findById(payload.sub);
+
+      if (
+        !user?.emailVerificationToken ||
+        user.emailVerificationToken !== token
+      ) {
+        throw new UnauthorizedException('Invalid verification token');
+      }
+
+      if (user.emailVerificationExpires < new Date()) {
+        throw new UnauthorizedException('Verification token has expired');
+      }
+
+      await this.usersService.verifyEmail(user.id);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired verification token');
+    }
+  }
+
+  async resendVerificationEmail(userId: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
+
+    if (user.isEmailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    const verificationToken = await this.generateEmailVerificationToken(user);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      verificationToken,
+    );
   }
 
   async getProfile(userId: string): Promise<UserResponseDto> {
@@ -174,5 +219,22 @@ export class AuthService {
     );
 
     await this.emailService.sendPasswordResetEmail(email, token);
+  }
+
+  private async generateEmailVerificationToken(user: User): Promise<string> {
+    const token = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email },
+      {
+        secret: this.configService.get<string>('JWT_VERIFICATION_SECRET'),
+        expiresIn: '24h',
+      },
+    );
+
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 24);
+
+    await this.usersService.setEmailVerificationToken(user.id, token, expires);
+
+    return token;
   }
 }

@@ -19,7 +19,6 @@
               }
             },
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{BASE_URL}}/users/:id",
               "host": ["{{BASE_URL}}"],
@@ -43,7 +42,6 @@
               }
             },
             "method": "GET",
-            "header": [],
             "url": {
               "raw": "{{BASE_URL}}/users/email/:email",
               "host": ["{{BASE_URL}}"],
@@ -67,10 +65,9 @@
               }
             },
             "method": "PATCH",
-            "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"NewPa$$w0rd\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n}",
+              "raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"Pa$$w0rd!\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -120,42 +117,6 @@
       "name": "auth",
       "item": [
         {
-          "name": "login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Response status code is 201\", function () {",
-                  "  pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test(\"Response has tokens\", function () {",
-                  "  const responseData = pm.response.json();",
-                  "  pm.expect(responseData).to.have.property('accessToken');",
-                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": "{{BASE_URL}}/auth/login"
-          }
-        },
-        {
           "name": "register",
           "event": [
             {
@@ -166,10 +127,11 @@
                   "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test(\"Response has tokens\", function () {",
+                  "pm.test(\"Response has tokens and user\", function () {",
                   "  const responseData = pm.response.json();",
                   "  pm.expect(responseData).to.have.property('accessToken');",
                   "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.expect(responseData).to.have.property('user');",
                   "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
                   "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
                   "});"
@@ -183,7 +145,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -194,32 +156,7 @@
           }
         },
         {
-          "name": "whoami",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "token": "{{BEARER_TOKEN}}"
-              }
-            },
-            "method": "GET",
-            "header": [],
-            "url": "{{BASE_URL}}/auth/whoami"
-          }
-        },
-        {
-          "name": "refresh",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{REFRESH_TOKEN}}",
-                "type": "text"
-              }
-            ],
-            "url": "{{BASE_URL}}/auth/refresh"
-          },
+          "name": "login",
           "event": [
             {
               "listen": "test",
@@ -229,10 +166,11 @@
                   "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test(\"Response has tokens\", function () {",
+                  "pm.test(\"Response has tokens and user\", function () {",
                   "  const responseData = pm.response.json();",
                   "  pm.expect(responseData).to.have.property('accessToken');",
                   "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.expect(responseData).to.have.property('user');",
                   "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
                   "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
                   "});"
@@ -240,10 +178,100 @@
                 "type": "text/javascript"
               }
             }
-          ]
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/login"
+          }
         },
         {
-          "name": "logout",
+          "name": "me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('id');",
+                  "  pm.expect(responseData).to.have.property('email');",
+                  "  pm.expect(responseData).to.not.have.property('password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "GET",
+            "url": "{{BASE_URL}}/auth/me"
+          }
+        },
+        {
+          "name": "verify-email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"your-verification-token-here\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/verify-email"
+          }
+        },
+        {
+          "name": "resend-verification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "auth": {
               "type": "bearer",
@@ -252,12 +280,29 @@
               }
             },
             "method": "POST",
-            "header": [],
-            "url": "{{BASE_URL}}/auth/logout"
+            "url": "{{BASE_URL}}/auth/resend-verification"
           }
         },
         {
           "name": "forgot-password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success message\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
@@ -271,17 +316,34 @@
               }
             },
             "url": "{{BASE_URL}}/auth/forgot-password"
-          },
-          "response": []
+          }
         },
         {
           "name": "reset-password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success message\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"NewPa$$w0rd\"\n}",
+              "raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"Pa$$w0rd!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -289,8 +351,71 @@
               }
             },
             "url": "{{BASE_URL}}/auth/reset-password"
-          },
-          "response": []
+          }
+        },
+        {
+          "name": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has new tokens\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{REFRESH_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{BASE_URL}}/auth/refresh"
+          }
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"BEARER_TOKEN\", \"\");",
+                  "pm.collectionVariables.set(\"REFRESH_TOKEN\", \"\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "url": "{{BASE_URL}}/auth/logout"
+          }
         }
       ],
       "event": [
@@ -318,16 +443,59 @@
       "listen": "prerequest",
       "script": {
         "type": "text/javascript",
-        "packages": {},
-        "exec": [""]
+        "exec": [
+          "// Check if token exists and is about to expire",
+          "const tokenData = pm.collectionVariables.get('BEARER_TOKEN');",
+          "if (tokenData) {",
+          "    try {",
+          "        const tokenParts = tokenData.split('.');",
+          "        const payload = JSON.parse(atob(tokenParts[1]));",
+          "        const expirationTime = payload.exp * 1000;",
+          "        const currentTime = new Date().getTime();",
+          "",
+          "        // If token expires in less than 30 seconds, try to refresh",
+          "        if (expirationTime - currentTime < 30000) {",
+          "            pm.sendRequest({",
+          "                url: pm.collectionVariables.get('BASE_URL') + '/auth/refresh',",
+          "                method: 'POST',",
+          "                header: {",
+          "                    'Authorization': 'Bearer ' + pm.collectionVariables.get('REFRESH_TOKEN')",
+          "                }",
+          "            }, function (err, res) {",
+          "                if (!err && res.code === 201) {",
+          "                    const responseData = res.json();",
+          "                    pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
+          "                    pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
+          "                }",
+          "            });",
+          "        }",
+          "    } catch (error) {",
+          "        console.error('Error parsing token:', error);",
+          "    }",
+          "}"
+        ]
       }
     },
     {
       "listen": "test",
       "script": {
         "type": "text/javascript",
-        "packages": {},
-        "exec": [""]
+        "exec": [
+          "// Update tokens if present in response",
+          "if (pm.response.code === 201 || pm.response.code === 200) {",
+          "    try {",
+          "        const responseData = pm.response.json();",
+          "        if (responseData.accessToken) {",
+          "            pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
+          "        }",
+          "        if (responseData.refreshToken) {",
+          "            pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
+          "        }",
+          "    } catch (error) {",
+          "        // Not a JSON response or no tokens present",
+          "    }",
+          "}"
+        ]
       }
     }
   ],

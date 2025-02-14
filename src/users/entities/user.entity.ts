@@ -71,6 +71,17 @@ export class User {
   @Exclude()
   refreshToken?: string;
 
+  @Column({ name: 'email_verification_token', nullable: true })
+  @Exclude()
+  emailVerificationToken?: string;
+
+  @Column({
+    name: 'email_verification_expires',
+    type: 'timestamp with time zone',
+    nullable: true,
+  })
+  emailVerificationExpires?: Date;
+
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }

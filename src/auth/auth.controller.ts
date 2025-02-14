@@ -29,6 +29,7 @@ import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { VerifyEmailDto } from './dtos/verify-email.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -125,5 +126,23 @@ export class AuthController {
     );
 
     return { message: 'Password reset successfully' };
+  }
+
+  @Public()
+  @Post('verify-email')
+  @ApiOperation({ summary: 'Verify email address' })
+  @ApiOkResponse({ description: 'Email verified successfully' })
+  @ApiUnauthorizedResponse({ description: 'Invalid verification token' })
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
+    await this.authService.verifyEmail(verifyEmailDto.token);
+  }
+
+  @Post('resend-verification')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Resend verification email' })
+  @ApiOkResponse({ description: 'Verification email sent' })
+  async resendVerification(@Request() req: RequestWithUser): Promise<void> {
+    await this.authService.resendVerificationEmail(req.user.id);
   }
 }

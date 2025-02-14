@@ -14,4 +14,13 @@ export class EmailService {
     console.log('To:', email);
     console.log('Reset URL:', resetUrl);
   }
+
+  async sendVerificationEmail(email: string, token: string): Promise<void> {
+    const verifyUrl = `${this.configService.get<string>('FRONTEND_URL')}/verify-email?token=${token}`;
+
+    // TODO: Implement actual email sending
+    console.log('Email Verification');
+    console.log('To:', email);
+    console.log('Verify URL:', verifyUrl);
+  }
 }

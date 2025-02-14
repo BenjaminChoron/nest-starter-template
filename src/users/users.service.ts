@@ -99,4 +99,23 @@ export class UsersService {
   async removeRefreshToken(userId: string): Promise<void> {
     await this.usersRepository.update({ id: userId }, { refreshToken: null });
   }
+
+  async setEmailVerificationToken(
+    userId: string,
+    token: string,
+    expires: Date,
+  ): Promise<void> {
+    await this.usersRepository.update(userId, {
+      emailVerificationToken: token,
+      emailVerificationExpires: expires,
+    });
+  }
+
+  async verifyEmail(userId: string): Promise<void> {
+    await this.usersRepository.update(userId, {
+      isEmailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null,
+    });
+  }
 }
