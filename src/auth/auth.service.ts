@@ -2,6 +2,9 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -14,6 +17,7 @@ import { UserResponseDto } from '../users/dtos/user-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { EmailService } from '../email/email.service';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 type AuthInput = { email: string; password: string };
 type AuthResult = {
@@ -23,11 +27,14 @@ type AuthResult = {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -187,8 +194,31 @@ export class AuthService {
     return tokens;
   }
 
-  async logout(userId: string) {
-    await this.usersService.removeRefreshToken(userId);
+  async logout(userId: string, token: string): Promise<void> {
+    try {
+      const user = await this.usersService.findById(userId);
+
+      if (!user) {
+        this.logger.warn(`Logout attempted for non-existent user: ${userId}`);
+
+        throw new NotFoundException('User not found');
+      }
+
+      // Blacklist the current access token
+      this.tokenBlacklistService.blacklist(token);
+
+      // Remove refresh token
+      await this.usersService.removeRefreshToken(userId);
+      this.logger.debug(`User ${userId} successfully logged out`);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.logger.error(`Failed to logout user ${userId}`, error?.stack);
+
+      throw new InternalServerErrorException('Failed to logout');
+    }
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

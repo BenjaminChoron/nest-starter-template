@@ -9,6 +9,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
 import { EmailModule } from '../email/email.module';
+import { TokenBlacklistService } from './token-blacklist.service';
+import { RedisModule } from '../redis/redis.module';
 
 @Module({
   imports: [
@@ -17,8 +19,15 @@ import { EmailModule } from '../email/email.module';
     PassportModule,
     JwtModule.register({}),
     EmailModule,
+    RedisModule,
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    RefreshTokenStrategy,
+    TokenBlacklistService,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })

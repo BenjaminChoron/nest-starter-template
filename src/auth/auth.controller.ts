@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Logger,
   Post,
   Request,
   UseGuards,
@@ -13,6 +14,7 @@ import {
   ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -34,6 +36,8 @@ import { VerifyEmailDto } from './dtos/verify-email.dto';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   @Public()
@@ -98,10 +102,14 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
-  @ApiOkResponse({ description: 'Logged out successfully' })
-  async logout(@Request() req: RequestWithUser) {
-    await this.authService.logout(req.user.id);
+  @ApiResponse({ status: 201, description: 'Successfully logged out' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async logout(@Request() req: RequestWithUser): Promise<void> {
+    const token = req.get('authorization').replace('Bearer', '').trim();
+    this.logger.debug(`User ${req.user.id} logging out`);
+    await this.authService.logout(req.user.id, token);
   }
 
   @Public()

@@ -1,6 +1,8 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +14,8 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
@@ -97,7 +101,17 @@ export class UsersService {
   }
 
   async removeRefreshToken(userId: string): Promise<void> {
-    await this.usersRepository.update({ id: userId }, { refreshToken: null });
+    try {
+      await this.usersRepository.update({ id: userId }, { refreshToken: null });
+      this.logger.debug(`Refresh token removed for user ${userId}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to remove refresh token for user ${userId}`,
+        error?.stack,
+      );
+
+      throw new InternalServerErrorException('Failed to remove refresh token');
+    }
   }
 
   async setEmailVerificationToken(

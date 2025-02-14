@@ -1,82 +1,223 @@
-import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
+import { Reflector } from '@nestjs/core';
+import { ClassSerializerInterceptor } from '@nestjs/common';
 import { DataSource } from 'typeorm';
+import { Redis } from 'ioredis';
 
-import { AppModule } from './../src/app.module';
-import { User } from '../src/users/entities/user.entity';
-
-describe('AppController (e2e)', () => {
+describe('AuthController (e2e)', () => {
   let app: INestApplication;
+  let dataSource: DataSource;
+  let redisClient: Redis;
+  let accessToken: string;
+  let refreshToken: string;
+  const testUser = {
+    email: 'test@example.com',
+    password: 'Pa$$w0rd!',
+  };
 
-  const testEmail = 'test@mail.com';
-  const testPassword = 'Pa$$w0rd';
-
-  beforeEach(async () => {
+  beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.useGlobalInterceptors(
+      new ClassSerializerInterceptor(app.get(Reflector)),
+    );
+
+    dataSource = app.get(DataSource);
+    redisClient = app.get('REDIS_CLIENT');
+
+    // Explicitly connect to Redis
+    await redisClient.connect();
     await app.init();
   });
 
+  beforeEach(async () => {
+    await dataSource.synchronize(true);
+
+    if (redisClient.status === 'ready') {
+      await redisClient.flushall();
+    }
+  });
+
+  afterEach(async () => {
+    if (redisClient.status === 'ready') {
+      await redisClient.flushall();
+    }
+  });
+
   afterAll(async () => {
-    const dataSource = app.get(DataSource);
-    await dataSource.createQueryBuilder().delete().from(User).execute();
+    try {
+      if (redisClient.status === 'ready') {
+        await redisClient.flushall();
+        await redisClient.quit();
+      }
+
+      await dataSource.destroy();
+      await app.close();
+    } catch (error) {
+      // Ignore cleanup errors
+    }
   });
 
-  it('handles a signup request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({ email: testEmail, password: testPassword })
-      .expect(201)
-      .then((res) => {
-        const { accessToken } = res.body;
-        expect(accessToken).toBeDefined();
-        expect(accessToken).toEqual(expect.any(String));
+  describe('Authentication', () => {
+    it('should register a new user', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/auth/register')
+        .send(testUser)
+        .expect(201);
+
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.email).toBe(testUser.email);
+      expect(response.body.user.password).toBeUndefined();
+
+      accessToken = response.body.accessToken;
+      refreshToken = response.body.refreshToken;
+    });
+
+    it('should not register with invalid email', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ ...testUser, email: 'invalid-email' })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message[0]).toBe('email must be an email');
+        });
+    });
+
+    it('should not register with weak password', () => {
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send({ ...testUser, password: 'weak' })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message).toEqual(
+            expect.arrayContaining([
+              'Password must contain at least one uppercase letter',
+              'Password must be at least 8 characters long',
+            ]),
+          );
+        });
+    });
+
+    it('should not register duplicate email', async () => {
+      // First registration
+      await request(app.getHttpServer())
+        .post('/auth/register')
+        .send(testUser)
+        .expect(201);
+
+      // Duplicate registration
+      return request(app.getHttpServer())
+        .post('/auth/register')
+        .send(testUser)
+        .expect(409);
+    });
+
+    it('should login with valid credentials', async () => {
+      // Register first
+      await request(app.getHttpServer()).post('/auth/register').send(testUser);
+
+      // Then login
+      const response = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send(testUser)
+        .expect(201);
+
+      expect(response.body.accessToken).toBeDefined();
+      expect(response.body.refreshToken).toBeDefined();
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.email).toBe(testUser.email);
+
+      accessToken = response.body.accessToken;
+      refreshToken = response.body.refreshToken;
+    });
+
+    it('should not login with invalid credentials', () => {
+      return request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ ...testUser, password: 'wrong' })
+        .expect(401);
+    });
+
+    describe('Protected Routes', () => {
+      beforeEach(async () => {
+        // Register and login before each protected route test
+        await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(testUser);
+
+        const loginResponse = await request(app.getHttpServer())
+          .post('/auth/login')
+          .send(testUser);
+
+        accessToken = loginResponse.body.accessToken;
+        refreshToken = loginResponse.body.refreshToken;
       });
-  });
 
-  it('signup as a new user then get the currently logged in user', async () => {
-    const anotherEmail = 'test1@mail.com';
-
-    const res = await request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({ email: anotherEmail, password: testPassword })
-      .expect(201);
-
-    const { body } = await request(app.getHttpServer())
-      .get('/auth/whoami')
-      .set('Authorization', `Bearer ${res.body.accessToken}`)
-      .expect(200);
-
-    expect(body.email).toEqual(anotherEmail);
-  });
-
-  it('handles a signin request', () => {
-    return request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: testEmail, password: testPassword })
-      .expect(201)
-      .then((res) => {
-        const { accessToken } = res.body;
-        expect(accessToken).toBeDefined();
-        expect(accessToken).toEqual(expect.any(String));
+      it('should get user profile with valid token', () => {
+        return request(app.getHttpServer())
+          .get('/auth/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(200)
+          .expect(({ body }) => {
+            expect(body.email).toBe(testUser.email);
+            expect(body.password).toBeUndefined();
+          });
       });
-  });
 
-  it('login user then get the current user infos', async () => {
-    const res = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ email: testEmail, password: testPassword })
-      .expect(201);
+      it('should refresh tokens with valid refresh token', () => {
+        return request(app.getHttpServer())
+          .post('/auth/refresh')
+          .set('Authorization', `Bearer ${refreshToken}`)
+          .expect(201)
+          .expect(({ body }) => {
+            expect(body.accessToken).toBeDefined();
+            expect(body.refreshToken).toBeDefined();
+            accessToken = body.accessToken;
+            refreshToken = body.refreshToken;
+          });
+      });
 
-    const { body } = await request(app.getHttpServer())
-      .get('/auth/whoami')
-      .set('Authorization', `Bearer ${res.body.accessToken}`)
-      .expect(200);
+      it('should logout successfully', () => {
+        return request(app.getHttpServer())
+          .post('/auth/logout')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(201);
+      });
 
-    expect(body.email).toEqual(testEmail);
+      it('should not access protected routes after logout', async () => {
+        // First logout
+        await request(app.getHttpServer())
+          .post('/auth/logout')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(201);
+
+        // Then try to access protected route with same token
+        return request(app.getHttpServer())
+          .get('/auth/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(401);
+      });
+    });
+
+    // Move these to outside the Protected Routes describe block
+    it('should not get profile without token', () => {
+      return request(app.getHttpServer()).get('/auth/me').expect(401);
+    });
+
+    it('should not refresh tokens with access token', () => {
+      return request(app.getHttpServer())
+        .post('/auth/refresh')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(401);
+    });
   });
 });
