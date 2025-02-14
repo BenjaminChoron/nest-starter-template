@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -33,6 +34,8 @@ const DEFAULT_OPTIONS: UploadOptions = {
 
 @Injectable()
 export class ImagesService {
+  private readonly logger = new Logger(ImagesService.name);
+
   constructor(private readonly configService: ConfigService) {
     cloudinary.config({
       cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
@@ -50,9 +53,14 @@ export class ImagesService {
       this.validateFile(file, mergedOptions);
 
       const uploadResult = await this.uploadToCloudinary(file, mergedOptions);
+      this.logger.debug(
+        `File uploaded successfully to Cloudinary: ${uploadResult.public_id}`,
+      );
 
       return uploadResult;
     } catch (error) {
+      this.logger.error('Failed to upload file to Cloudinary', error?.stack);
+
       if (error instanceof BadRequestException) {
         throw error;
       }
@@ -64,7 +72,15 @@ export class ImagesService {
   async delete(publicId: string): Promise<void> {
     try {
       await cloudinary.uploader.destroy(publicId);
+      this.logger.debug(
+        `File deleted successfully from Cloudinary: ${publicId}`,
+      );
     } catch (error) {
+      this.logger.error(
+        `Failed to delete file from Cloudinary: ${publicId}`,
+        error?.stack,
+      );
+
       throw new InternalServerErrorException('Failed to delete image');
     }
   }

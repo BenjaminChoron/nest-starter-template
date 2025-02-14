@@ -6,6 +6,7 @@ import {
   Get,
   HttpStatus,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   Param,
   ParseUUIDPipe,
@@ -40,6 +41,8 @@ import { multerConfig } from '../config/multer.config';
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly imagesService: ImagesService,
@@ -167,9 +170,11 @@ export class UsersController {
 
       if (user.avatar) {
         const publicId = this.extractPublicId(user.avatar);
-        await this.imagesService.delete(publicId).catch(() => {
-          // Ignore delete errors
-          console.warn('Failed to delete old avatar:', publicId);
+        await this.imagesService.delete(publicId).catch(error => {
+          this.logger.warn(
+            `Failed to delete old avatar: ${publicId}`,
+            error?.stack,
+          );
         });
       }
 
@@ -181,6 +186,10 @@ export class UsersController {
         },
       });
 
+      this.logger.debug(
+        `Avatar updated for user ${id}: ${uploadResult.secure_url}`,
+      );
+
       return this.usersService.update(id, { avatar: uploadResult.secure_url });
     } catch (error) {
       if (error instanceof BadRequestException) {
@@ -191,7 +200,7 @@ export class UsersController {
         throw error;
       }
 
-      console.error('Avatar upload error:', error);
+      this.logger.error(`Failed to update avatar for user ${id}`, error?.stack);
 
       throw new InternalServerErrorException('Failed to update avatar');
     }
