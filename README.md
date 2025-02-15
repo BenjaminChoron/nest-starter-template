@@ -2,124 +2,96 @@
 
 ## Description
 
-This is a starter template for a NestJS application. It includes a robust authentication system with JWT tokens, email verification, and password reset functionality. Built on top of PostgreSQL with Redis for token management.
-
-## Stack
-
-- [NestJS](https://nestjs.com/)
-- [Docker](https://www.docker.com/)
-- [PostgreSQL](https://www.postgresql.org/)
-- [Redis](https://redis.io/)
-- [TypeORM](https://typeorm.io/)
-- [JWT](https://jwt.io/)
-- [Swagger](https://swagger.io/)
-- [Cloudinary](https://cloudinary.com/)
+A production-ready NestJS starter template with robust authentication, role-based access control, and file uploads. Features include JWT authentication, email verification, password reset, and Cloudinary integration.
 
 ## Features
 
-- JWT-based authentication with access & refresh tokens
-- Token blacklisting with Redis
-- Email verification flow
-- Password reset functionality
-- User management
-- Comprehensive test coverage
-- Swagger API documentation
+- 🔐 JWT Authentication with access & refresh tokens
+- 👥 Role-based access control (User, Admin, Super Admin)
+- 📧 Email verification flow
+- 🔑 Secure password reset
+- 📁 File uploads with Cloudinary
+- 🚫 Token blacklisting with Redis
+- 📝 OpenAPI/Swagger documentation
+- 🧪 Comprehensive test coverage
+- 🐳 Docker compose setup
+- 🔄 Auto-refresh tokens
+- ⚡ Request validation
+- 📊 Error handling
 
-## Installation
+## Tech Stack
 
-Clone the repo and run `npm install` in the project directory\
-or\
-Run those commands in your terminal:
+- **Framework**: NestJS
+- **Database**: PostgreSQL + TypeORM
+- **Caching**: Redis
+- **Storage**: Cloudinary
+- **Documentation**: Swagger/OpenAPI
+- **Testing**: Jest
+- **Containerization**: Docker
 
-```bash
-$ npx degit BenjaminChoron/nest-starter-template project-name
-$ cd project-name
-$ npm install
-```
-
-## Configuration
-
-Create a `.env` file at the root of the project using the `.env.example` file as a template.
-
-## Running the app
-
-First, start the required services:
+## Quick Start
 
 ```bash
-# Start PostgreSQL and Redis
-$ docker-compose up -d
+# Clone the template
+npx degit BenjaminChoron/nest-starter-template my-project
+
+# Install dependencies
+cd my-project && npm install
+
+# Configure environment
+cp .env.example .env
+
+# Start services
+docker-compose up -d
+
+# Run migrations
+npm run migration:run
+
+# Start development server
+npm run start:dev
 ```
 
-Then run the application:
+## API Documentation
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Documentation
-
-The API documentation is available via Swagger. Once the application is running, visit:
+Access the interactive API documentation at:
 
 ```
 http://localhost:3000/api
 ```
 
-![Swagger screenshot](/assets/screenshots/swagger.png)
+### Core Endpoints
 
-### Main Endpoints
+**Authentication:**
 
-Authentication:
-
-- `POST /auth/register` - Register new user
-- `POST /auth/login` - Login user
-- `POST /auth/logout` - Logout user
+- `POST /auth/register` - Create new account
+- `POST /auth/login` - Authenticate user
 - `POST /auth/refresh` - Refresh access token
-- `GET /auth/me` - Get current user profile
+- `POST /auth/logout` - Invalidate tokens
+- `GET /auth/me` - Get current user
 
-Email Verification:
+**Users:**
 
-- `POST /auth/verify-email` - Verify email address
-- `POST /auth/resend-verification` - Resend verification email
-
-Password Management:
-
-- `POST /auth/forgot-password` - Request password reset
-- `POST /auth/reset-password` - Reset password
+- `GET /users` - List all users (Admin)
+- `GET /users/:id` - Get user details
+- `GET /users/email/:email` - Get user by email
+- `PATCH /users/:id` - Update user
+- `POST /users/:id/avatar` - Upload avatar
+- `PATCH /users/:id/role` - Update user role (Super Admin)
+- `DELETE /users/:id` - Delete user (Admin)
 
 ## Testing
 
-The application includes comprehensive test coverage:
-
-- Unit tests for services
-- E2E tests for API endpoints
-- Integration tests for database operations
-
-Tests use a separate database and Redis instance. Ensure both are running:
-
 ```bash
-# Create test database
-$ createdb auth_api_test
+# Unit tests
+npm run test
 
-# Verify Redis is running
-$ docker-compose ps
+# E2E tests
+npm run test:e2e
+
+# Test coverage
+npm run test:cov
 ```
+
+## License
+
+MIT
