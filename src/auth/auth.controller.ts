@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 import { Public } from './decorators/public.decorator';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -42,11 +43,18 @@ import {
 @ApiTags('auth')
 @Controller('auth')
 @ApiBearerAuth()
+@SkipThrottle({ default: false })
+@ApiResponse({
+  status: 429,
+  description: 'Too Many Requests',
+  type: ErrorResponseDto,
+})
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
   constructor(private readonly authService: AuthService) {}
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Public()
   @Post('register')
   @ApiOperation({
@@ -73,6 +81,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @UseGuards(LocalGuard)
   @Post('login')
@@ -95,6 +104,7 @@ export class AuthController {
     return this.authService.login(req.user);
   }
 
+  @SkipThrottle()
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiBearerAuth()
@@ -123,6 +133,7 @@ export class AuthController {
     return this.authService.getProfile(req.user.id);
   }
 
+  @SkipThrottle()
   @Post('refresh')
   @UseGuards(RefreshTokenGuard)
   @ApiOperation({
@@ -151,6 +162,7 @@ export class AuthController {
     return this.authService.refreshTokens(userId, refreshToken);
   }
 
+  @SkipThrottle()
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
@@ -174,6 +186,7 @@ export class AuthController {
     await this.authService.logout(userId, refreshToken);
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
@@ -199,6 +212,7 @@ export class AuthController {
     return { message: 'If the email exists, a reset token has been sent' };
   }
 
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Public()
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password using token' })
@@ -228,6 +242,7 @@ export class AuthController {
     return { message: 'Password reset successfully' };
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Public()
   @Post('verify-email')
   @ApiOperation({ summary: 'Verify email address' })
@@ -251,6 +266,7 @@ export class AuthController {
     await this.authService.verifyEmail(verifyEmailDto.token);
   }
 
+  @SkipThrottle()
   @Post('resend-verification')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
