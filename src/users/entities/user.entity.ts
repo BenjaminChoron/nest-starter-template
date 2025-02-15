@@ -11,6 +11,7 @@ import {
 import { Exclude } from 'class-transformer';
 import { IsEmail, Matches, MinLength } from 'class-validator';
 import { v4 as uuidv4 } from 'uuid';
+import { Role } from '../enums/role.enum';
 
 @Entity('users')
 @Check(`"email" ~* '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$'`)
@@ -81,6 +82,13 @@ export class User {
     nullable: true,
   })
   emailVerificationExpires?: Date;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.USER,
+  })
+  role: Role;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

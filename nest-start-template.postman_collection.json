@@ -1,643 +1,665 @@
 {
-	"info": {
-		"_postman_id": "09906ead-48be-4cf1-aae0-36acebeed69e",
-		"name": "nest-start-template",
-		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
-		"_exporter_id": "18583914"
-	},
-	"item": [
-		{
-			"name": "users",
-			"item": [
-				{
-					"name": "findById",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{BASE_URL}}/users/:id",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "findByEmail",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{BASE_URL}}/users/email/:email",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"users",
-								"email",
-								":email"
-							],
-							"variable": [
-								{
-									"key": "email",
-									"value": "test@example.com"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "updateUser",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "PATCH",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"Pa$$w0rd!\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{BASE_URL}}/users/:id",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "removeUser",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{BASE_URL}}/users/:id",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"users",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "updateAvatar",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{accessToken}}"
-							}
-						],
-						"body": {
-							"mode": "formdata",
-							"formdata": [
-								{
-									"key": "file",
-									"type": "file",
-									"src": []
-								}
-							]
-						},
-						"url": {
-							"raw": "{{BASE_URL}}/users/:id/avatar",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"users",
-								":id",
-								"avatar"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": ""
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "auth",
-			"item": [
-				{
-					"name": "register",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 201\", function () {",
-									"  pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response has tokens and user\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('accessToken');",
-									"  pm.expect(responseData).to.have.property('refreshToken');",
-									"  pm.expect(responseData).to.have.property('user');",
-									"  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
-									"  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/register"
-					},
-					"response": []
-				},
-				{
-					"name": "login",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 201\", function () {",
-									"  pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response has tokens and user\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('accessToken');",
-									"  pm.expect(responseData).to.have.property('refreshToken');",
-									"  pm.expect(responseData).to.have.property('user');",
-									"  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
-									"  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/login"
-					},
-					"response": []
-				},
-				{
-					"name": "me",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response has user data\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('id');",
-									"  pm.expect(responseData).to.have.property('email');",
-									"  pm.expect(responseData).to.not.have.property('password');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "GET",
-						"header": [],
-						"url": "{{BASE_URL}}/auth/me"
-					},
-					"response": []
-				},
-				{
-					"name": "verify-email",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"token\": \"your-verification-token-here\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/verify-email"
-					},
-					"response": []
-				},
-				{
-					"name": "resend-verification",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "POST",
-						"header": [],
-						"url": "{{BASE_URL}}/auth/resend-verification"
-					},
-					"response": []
-				},
-				{
-					"name": "forgot-password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response has success message\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('message');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"test@example.com\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/forgot-password"
-					},
-					"response": []
-				},
-				{
-					"name": "reset-password",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response has success message\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('message');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"Pa$$w0rd!\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "{{BASE_URL}}/auth/reset-password"
-					},
-					"response": []
-				},
-				{
-					"name": "refresh",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 201\", function () {",
-									"  pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Response has new tokens\", function () {",
-									"  const responseData = pm.response.json();",
-									"  pm.expect(responseData).to.have.property('accessToken');",
-									"  pm.expect(responseData).to.have.property('refreshToken');",
-									"  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
-									"  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{REFRESH_TOKEN}}",
-								"type": "text"
-							}
-						],
-						"url": "{{BASE_URL}}/auth/refresh"
-					},
-					"response": []
-				},
-				{
-					"name": "logout",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Response status code is 200\", function () {",
-									"  pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.collectionVariables.set(\"BEARER_TOKEN\", \"\");",
-									"pm.collectionVariables.set(\"REFRESH_TOKEN\", \"\");"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "{{BEARER_TOKEN}}"
-							}
-						},
-						"method": "POST",
-						"header": [],
-						"url": "{{BASE_URL}}/auth/logout"
-					},
-					"response": []
-				}
-			],
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"packages": {},
-						"exec": [
-							""
-						]
-					}
-				}
-			]
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					"// Check if token exists and is about to expire",
-					"const tokenData = pm.collectionVariables.get('BEARER_TOKEN');",
-					"if (tokenData) {",
-					"    try {",
-					"        const tokenParts = tokenData.split('.');",
-					"        const payload = JSON.parse(atob(tokenParts[1]));",
-					"        const expirationTime = payload.exp * 1000;",
-					"        const currentTime = new Date().getTime();",
-					"",
-					"        // If token expires in less than 30 seconds, try to refresh",
-					"        if (expirationTime - currentTime < 30000) {",
-					"            pm.sendRequest({",
-					"                url: pm.collectionVariables.get('BASE_URL') + '/auth/refresh',",
-					"                method: 'POST',",
-					"                header: {",
-					"                    'Authorization': 'Bearer ' + pm.collectionVariables.get('REFRESH_TOKEN')",
-					"                }",
-					"            }, function (err, res) {",
-					"                if (!err && res.code === 201) {",
-					"                    const responseData = res.json();",
-					"                    pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
-					"                    pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
-					"                }",
-					"            });",
-					"        }",
-					"    } catch (error) {",
-					"        console.error('Error parsing token:', error);",
-					"    }",
-					"}"
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					"// Update tokens if present in response",
-					"if (pm.response.code === 201 || pm.response.code === 200) {",
-					"    try {",
-					"        const responseData = pm.response.json();",
-					"        if (responseData.accessToken) {",
-					"            pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
-					"        }",
-					"        if (responseData.refreshToken) {",
-					"            pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
-					"        }",
-					"    } catch (error) {",
-					"        // Not a JSON response or no tokens present",
-					"    }",
-					"}"
-				]
-			}
-		},
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					"// Auto-set the Authorization header for protected routes",
-					"if (pm.request.url.toString().includes('/users/') && !pm.request.url.toString().includes('/auth/')) {",
-					"    const token = pm.collectionVariables.get('accessToken');",
-					"    if (token) {",
-					"        pm.request.headers.add({",
-					"            key: 'Authorization',",
-					"            value: 'Bearer ' + token",
-					"        });",
-					"    }",
-					"}"
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "BASE_URL",
-			"value": "http://localhost:3000",
-			"type": "string"
-		},
-		{
-			"key": "BEARER_TOKEN",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "REFRESH_TOKEN",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "baseUrl",
-			"value": "http://localhost:3000"
-		},
-		{
-			"key": "accessToken",
-			"value": ""
-		},
-		{
-			"key": "refreshToken",
-			"value": ""
-		},
-		{
-			"key": "userId",
-			"value": ""
-		}
-	]
+  "info": {
+    "_postman_id": "09906ead-48be-4cf1-aae0-36acebeed69e",
+    "name": "nest-start-template",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+    "_exporter_id": "18583914"
+  },
+  "item": [
+    {
+      "name": "users",
+      "item": [
+        {
+          "name": "findById",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/users/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "findByEmail",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/users/email/:email",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", "email", ":email"],
+              "variable": [
+                {
+                  "key": "email",
+                  "value": "test@example.com"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"updated@example.com\",\n    \"password\": \"Pa$$w0rd!\",\n    \"avatar\": \"https://example.com/avatar.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/users/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "removeUser",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/users/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateAvatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/users/:id/avatar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", ":id", "avatar"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getAllUsers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/users",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "updateUserRole",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/users/:id/role",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", ":id", "role"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tokens and user\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.expect(responseData).to.have.property('user');",
+                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/register"
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has tokens and user\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.expect(responseData).to.have.property('user');",
+                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/login"
+          },
+          "response": []
+        },
+        {
+          "name": "me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has user data\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('id');",
+                  "  pm.expect(responseData).to.have.property('email');",
+                  "  pm.expect(responseData).to.not.have.property('password');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{BASE_URL}}/auth/me"
+          },
+          "response": []
+        },
+        {
+          "name": "verify-email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"your-verification-token-here\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/verify-email"
+          },
+          "response": []
+        },
+        {
+          "name": "resend-verification",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{BASE_URL}}/auth/resend-verification"
+          },
+          "response": []
+        },
+        {
+          "name": "forgot-password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success message\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/forgot-password"
+          },
+          "response": []
+        },
+        {
+          "name": "reset-password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success message\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('message');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"Pa$$w0rd!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{BASE_URL}}/auth/reset-password"
+          },
+          "response": []
+        },
+        {
+          "name": "refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has new tokens\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  pm.expect(responseData).to.have.property('accessToken');",
+                  "  pm.expect(responseData).to.have.property('refreshToken');",
+                  "  pm.collectionVariables.set(\"BEARER_TOKEN\", responseData.accessToken);",
+                  "  pm.collectionVariables.set(\"REFRESH_TOKEN\", responseData.refreshToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{REFRESH_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{BASE_URL}}/auth/refresh"
+          },
+          "response": []
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"BEARER_TOKEN\", \"\");",
+                  "pm.collectionVariables.set(\"REFRESH_TOKEN\", \"\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{BEARER_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{BASE_URL}}/auth/logout"
+          },
+          "response": []
+        }
+      ],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "packages": {},
+            "exec": [""]
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Check if token exists and is about to expire",
+          "const tokenData = pm.collectionVariables.get('BEARER_TOKEN');",
+          "if (tokenData) {",
+          "    try {",
+          "        const tokenParts = tokenData.split('.');",
+          "        const payload = JSON.parse(atob(tokenParts[1]));",
+          "        const expirationTime = payload.exp * 1000;",
+          "        const currentTime = new Date().getTime();",
+          "",
+          "        // If token expires in less than 30 seconds, try to refresh",
+          "        if (expirationTime - currentTime < 30000) {",
+          "            pm.sendRequest({",
+          "                url: pm.collectionVariables.get('BASE_URL') + '/auth/refresh',",
+          "                method: 'POST',",
+          "                header: {",
+          "                    'Authorization': 'Bearer ' + pm.collectionVariables.get('REFRESH_TOKEN')",
+          "                }",
+          "            }, function (err, res) {",
+          "                if (!err && res.code === 201) {",
+          "                    const responseData = res.json();",
+          "                    pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
+          "                    pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
+          "                }",
+          "            });",
+          "        }",
+          "    } catch (error) {",
+          "        console.error('Error parsing token:', error);",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Update tokens if present in response",
+          "if (pm.response.code === 201 || pm.response.code === 200) {",
+          "    try {",
+          "        const responseData = pm.response.json();",
+          "        if (responseData.accessToken) {",
+          "            pm.collectionVariables.set('BEARER_TOKEN', responseData.accessToken);",
+          "        }",
+          "        if (responseData.refreshToken) {",
+          "            pm.collectionVariables.set('REFRESH_TOKEN', responseData.refreshToken);",
+          "        }",
+          "    } catch (error) {",
+          "        // Not a JSON response or no tokens present",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set the Authorization header for protected routes",
+          "if (pm.request.url.toString().includes('/users/') && !pm.request.url.toString().includes('/auth/')) {",
+          "    const token = pm.collectionVariables.get('accessToken');",
+          "    if (token) {",
+          "        pm.request.headers.add({",
+          "            key: 'Authorization',",
+          "            value: 'Bearer ' + token",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "BEARER_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
 }

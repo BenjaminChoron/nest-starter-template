@@ -1,5 +1,12 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, Matches, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  Matches,
+  MinLength,
+} from 'class-validator';
+import { Role } from '../enums/role.enum';
 
 export class UpdateUserDto {
   @ApiPropertyOptional()
@@ -21,4 +28,9 @@ export class UpdateUserDto {
     message: 'Password must contain at least one special character',
   })
   password?: string;
+
+  @ApiPropertyOptional({ enum: Role })
+  @IsEnum(Role)
+  @IsOptional()
+  role?: Role;
 }

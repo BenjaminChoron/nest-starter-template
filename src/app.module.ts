@@ -3,11 +3,11 @@ import { APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AuthModule } from './auth/auth.module';
-import { dbdatasource } from './database/data-source';
+import { dataSourceOptions } from './database/data-source';
 import { UsersModule } from './users/users.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(dbdatasource), UsersModule, AuthModule],
+  imports: [TypeOrmModule.forRoot(dataSourceOptions), UsersModule, AuthModule],
   controllers: [],
   providers: [
     {

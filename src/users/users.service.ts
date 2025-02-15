@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -12,6 +13,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import * as bcrypt from 'bcrypt';
 import { ImagesService } from '../utils/images.service';
+import { Role } from './enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -43,6 +45,14 @@ export class UsersService {
     await this.usersRepository.save(user);
 
     return user;
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.usersRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
   async findById(id: string): Promise<User> {
@@ -164,6 +174,16 @@ export class UsersService {
     );
 
     return this.update(userId, { avatar: uploadResult.secure_url });
+  }
+
+  async updateRole(userId: string, role: Role): Promise<UserResponseDto> {
+    const user = await this.findById(userId);
+
+    if (user.role === Role.SUPER_ADMIN) {
+      throw new ForbiddenException('Cannot modify Super Admin role');
+    }
+
+    return this.update(userId, { role });
   }
 
   private extractPublicId(url: string): string {

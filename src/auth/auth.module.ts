@@ -12,6 +12,7 @@ import { EmailModule } from '../email/email.module';
 import { TokenBlacklistService } from './token-blacklist.service';
 import { RedisModule } from '../redis/redis.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -38,8 +39,9 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
     RefreshTokenStrategy,
     TokenBlacklistService,
     JwtAuthGuard,
+    RolesGuard,
   ],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, TokenBlacklistService],
+  exports: [AuthService, JwtAuthGuard, TokenBlacklistService, RolesGuard],
 })
 export class AuthModule {}

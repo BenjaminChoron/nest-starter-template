@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
+import { Role } from '../enums/role.enum';
 
 @Exclude()
 export class UserResponseDto {
@@ -34,6 +35,10 @@ export class UserResponseDto {
   @Expose()
   @ApiProperty()
   isActive: boolean;
+
+  @Expose()
+  @ApiProperty({ enum: Role, default: Role.USER })
+  role: Role;
 
   constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);

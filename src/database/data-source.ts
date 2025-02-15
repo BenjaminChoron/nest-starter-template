@@ -1,4 +1,5 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { SeederOptions } from 'typeorm-extension';
 import { config } from 'dotenv';
 import { join } from 'path';
 
@@ -10,7 +11,7 @@ const getEnvVar = (prod: string, test: string): string =>
 const isDevelopment = process.env.NODE_ENV === 'development';
 const isProduction = process.env.NODE_ENV === 'production';
 
-export const dbdatasource: DataSourceOptions = {
+export const dataSourceOptions: DataSourceOptions & SeederOptions = {
   type: 'postgres',
   host: getEnvVar('DATABASE_HOST', 'TEST_DATABASE_HOST'),
   port: parseInt(getEnvVar('DATABASE_PORT', 'TEST_DATABASE_PORT'), 10),
@@ -40,7 +41,7 @@ export const dbdatasource: DataSourceOptions = {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
   },
+  seeds: ['dist/database/seeds/*.seed.js'],
 };
 
-const dataSource = new DataSource(dbdatasource);
-export default dataSource;
+export const AppDataSource = new DataSource(dataSourceOptions);

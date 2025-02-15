@@ -29,14 +29,17 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { memoryStorage } from 'multer';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from './enums/role.enum';
 
 @ApiTags('users')
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);
@@ -99,7 +102,8 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user' })
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Delete a user (Admin only)' })
   @ApiParam({ name: 'id', required: true })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -150,5 +154,24 @@ export class UsersController {
     file: Express.Multer.File,
   ): Promise<UserResponseDto> {
     return this.usersService.updateAvatar(id, file);
+  }
+
+  @Get()
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  async findAll(): Promise<UserResponseDto[]> {
+    const users = await this.usersService.findAll();
+
+    return users.map(user => new UserResponseDto(user));
+  }
+
+  @Patch(':id/role')
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Update user role (Super Admin only)' })
+  async updateRole(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('role') role: Role,
+  ): Promise<UserResponseDto> {
+    return this.usersService.updateRole(id, role);
   }
 }

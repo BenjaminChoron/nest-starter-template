@@ -25,7 +25,8 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "db:drop": "npm run typeorm -- schema:drop",
-    "db:reset": "npm run db:drop && npm run migration:revert && npm run migration:run"
+    "db:reset": "npm run db:drop && npm run migration:run && npm run db:seed",
+    "db:seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -53,6 +54,7 @@
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20",
+    "typeorm-extension": "^3.6.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
