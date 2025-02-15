@@ -151,7 +151,7 @@ export class UsersService {
       });
     }
 
-    const uploadResult = await this.imagesService.upload(file.path, {
+    const uploadResult = await this.imagesService.upload(file, {
       transformation: {
         width: 150,
         height: 150,

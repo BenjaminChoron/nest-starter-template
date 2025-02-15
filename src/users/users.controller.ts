@@ -32,6 +32,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { memoryStorage } from 'multer';
 
 @ApiTags('users')
 @Controller('users')
@@ -110,7 +111,11 @@ export class UsersController {
   }
 
   @Post(':id/avatar')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+    }),
+  )
   @ApiOperation({ summary: 'Upload user avatar' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', required: true })
