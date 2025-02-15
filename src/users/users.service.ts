@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserResponseDto } from './dtos/user-response.dto';
 import * as bcrypt from 'bcrypt';
+import { ImagesService } from '../utils/images.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly imagesService: ImagesService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -131,5 +133,42 @@ export class UsersService {
       emailVerificationToken: null,
       emailVerificationExpires: null,
     });
+  }
+
+  async updateAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<UserResponseDto> {
+    const user = await this.findById(userId);
+
+    if (user.avatar) {
+      const publicId = this.extractPublicId(user.avatar);
+      await this.imagesService.delete(publicId).catch(error => {
+        this.logger.warn(
+          `Failed to delete old avatar: ${publicId}`,
+          error?.stack,
+        );
+      });
+    }
+
+    const uploadResult = await this.imagesService.upload(file.path, {
+      transformation: {
+        width: 150,
+        height: 150,
+        crop: 'fill',
+      },
+    });
+
+    this.logger.debug(
+      `Avatar updated for user ${userId}: ${uploadResult.secure_url}`,
+    );
+
+    return this.update(userId, { avatar: uploadResult.secure_url });
+  }
+
+  private extractPublicId(url: string): string {
+    const matches = url.match(/\/v\d+\/([^/]+)\./);
+
+    return matches ? matches[1] : '';
   }
 }

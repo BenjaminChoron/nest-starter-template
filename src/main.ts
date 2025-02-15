@@ -29,8 +29,8 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
-    .setTitle('Users API')
-    .setDescription('The users API description')
+    .setTitle('Nest Starter Template API')
+    .setDescription('The Nest Starter Template API description')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

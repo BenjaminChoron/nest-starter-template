@@ -112,27 +112,32 @@
           }
         },
         {
-          "name": "updateAvatar",
+          "name": "Update Avatar",
           "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "token": "{{BEARER_TOKEN}}"
+            "method": "POST",
+            "url": "{{baseUrl}}/users/:id/avatar",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
               }
-            },
-            "method": "PATCH",
-            "header": [],
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "avatar",
+                  "key": "file",
                   "type": "file",
-                  "src": []
+                  "src": "/path/to/avatar.jpg"
                 }
               ]
             },
-            "url": "{{BASE_URL}}/users/:id/avatar"
+            "variable": [
+              {
+                "key": "id",
+                "value": "{{userId}}"
+              }
+            ]
           }
         }
       ]
@@ -521,6 +526,24 @@
           "}"
         ]
       }
+    },
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set the Authorization header for protected routes",
+          "if (pm.request.url.toString().includes('/users/') && !pm.request.url.toString().includes('/auth/')) {",
+          "    const token = pm.collectionVariables.get('accessToken');",
+          "    if (token) {",
+          "        pm.request.headers.add({",
+          "            key: 'Authorization',",
+          "            value: 'Bearer ' + token",
+          "        });",
+          "    }",
+          "}"
+        ]
+      }
     }
   ],
   "variable": [
@@ -538,6 +561,22 @@
       "key": "REFRESH_TOKEN",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
     }
   ]
 }

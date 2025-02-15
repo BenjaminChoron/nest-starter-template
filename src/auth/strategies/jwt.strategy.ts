@@ -3,12 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
-import { UserResponseDto } from '../../users/dtos/user-response.dto';
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -19,17 +13,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('JWT_SECRET'),
+      secretOrKey: configService.get('JWT_ACCESS_SECRET'),
     });
   }
 
-  async validate(payload: JwtPayload): Promise<UserResponseDto> {
+  async validate(payload: any) {
     try {
       const user = await this.usersService.findById(payload.sub);
 
-      return new UserResponseDto(user);
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return user;
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Invalid token');
     }
   }
 }

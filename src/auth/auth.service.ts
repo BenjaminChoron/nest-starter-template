@@ -62,34 +62,29 @@ export class AuthService {
     }
   }
 
-  async getTokens(user: User) {
+  async getTokens(userId: string, email: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email },
+        { sub: userId, email },
         {
-          secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: '15m',
+          secret: this.configService.get('JWT_ACCESS_SECRET'),
+          expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION', '15m'),
         },
       ),
       this.jwtService.signAsync(
-        { sub: user.id, email: user.email },
+        { sub: userId, email },
         {
-          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-          expiresIn: '7d',
+          secret: this.configService.get('JWT_REFRESH_SECRET'),
+          expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION', '7d'),
         },
       ),
     ]);
 
-    await this.usersService.setRefreshToken(user.id, refreshToken);
-
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 
   async login(user: User): Promise<AuthResponseDto> {
-    const tokens = await this.getTokens(user);
+    const tokens = await this.getTokens(user.id, user.email);
     await this.usersService.updateLastLogin(user.id);
 
     return new AuthResponseDto({
@@ -117,7 +112,7 @@ export class AuthService {
         user.email,
         verificationToken,
       );
-      const tokens = await this.getTokens(user);
+      const tokens = await this.getTokens(user.id, user.email);
 
       return new AuthResponseDto({
         ...tokens,
@@ -188,7 +183,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const tokens = await this.getTokens(user);
+    const tokens = await this.getTokens(userId, user.email);
     await this.usersService.setRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;

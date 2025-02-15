@@ -10,8 +10,10 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
+  ApiHeader,
   ApiOkResponse,
   ApiOperation,
   ApiResponse,
@@ -43,9 +45,28 @@ export class AuthController {
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'user@example.com',
+        password: 'Pa$$w0rd!',
+      },
+    },
+  })
   @ApiCreatedResponse({
     description: 'Registration successful',
-    type: AuthResponseDto,
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'user@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    },
   })
   @ApiBadRequestResponse({ description: 'Bad request' })
   @ApiConflictResponse({ description: 'Email already exists' })
@@ -59,9 +80,28 @@ export class AuthController {
   @UseGuards(LocalGuard)
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'user@example.com',
+        password: 'Pa$$w0rd!',
+      },
+    },
+  })
   @ApiCreatedResponse({
     description: 'Login successful',
-    type: AuthResponseDto,
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
+        user: {
+          id: '123e4567-e89b-12d3-a456-426614174000',
+          email: 'user@example.com',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+      },
+    },
   })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
   async login(
@@ -74,9 +114,22 @@ export class AuthController {
   @Get('me')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer access_token',
+    required: true,
+    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
+  })
   @ApiOkResponse({
     description: 'Profile retrieved successfully',
-    type: UserResponseDto,
+    schema: {
+      example: {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'user@example.com',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+    },
   })
   @ApiUnauthorizedResponse({ description: 'Unauthorized' })
   getProfile(
@@ -88,9 +141,20 @@ export class AuthController {
   @Post('refresh')
   @UseGuards(RefreshTokenGuard)
   @ApiOperation({ summary: 'Refresh access token' })
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer refresh_token',
+    required: true,
+    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
+  })
   @ApiCreatedResponse({
     description: 'Tokens refreshed successfully',
-    type: AuthResponseDto,
+    schema: {
+      example: {
+        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
+        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
+      },
+    },
   })
   @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
   async refreshTokens(@Request() req: RequestWithUser) {
@@ -104,7 +168,17 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout user' })
-  @ApiResponse({ status: 201, description: 'Successfully logged out' })
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer access_token',
+    required: true,
+    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Successfully logged out',
+    schema: { example: { message: 'Logout successful' } },
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async logout(@Request() req: RequestWithUser): Promise<void> {
     const token = req.get('authorization').replace('Bearer', '').trim();
@@ -115,7 +189,22 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
-  @ApiResponse({ status: 201, description: 'Reset token sent successfully' })
+  @ApiBody({
+    schema: {
+      example: {
+        email: 'user@example.com',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Reset token sent successfully',
+    schema: {
+      example: {
+        message: 'If the email exists, a reset token has been sent',
+      },
+    },
+  })
   async forgotPassword(@Body('email') email: string) {
     await this.authService.generateResetToken(email);
 
@@ -125,7 +214,22 @@ export class AuthController {
   @Public()
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password using token' })
-  @ApiOkResponse({ description: 'Password reset successfully' })
+  @ApiBody({
+    schema: {
+      example: {
+        token: 'eyJhbGciOiJIUzI1NiIs...',
+        newPassword: 'NewPa$$w0rd!',
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Password reset successfully',
+    schema: {
+      example: {
+        message: 'Password reset successfully',
+      },
+    },
+  })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     await this.authService.resetPassword(
@@ -139,7 +243,21 @@ export class AuthController {
   @Public()
   @Post('verify-email')
   @ApiOperation({ summary: 'Verify email address' })
-  @ApiOkResponse({ description: 'Email verified successfully' })
+  @ApiBody({
+    schema: {
+      example: {
+        token: 'eyJhbGciOiJIUzI1NiIs...',
+      },
+    },
+  })
+  @ApiOkResponse({
+    description: 'Email verified successfully',
+    schema: {
+      example: {
+        message: 'Email verified successfully',
+      },
+    },
+  })
   @ApiUnauthorizedResponse({ description: 'Invalid verification token' })
   async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto): Promise<void> {
     await this.authService.verifyEmail(verifyEmailDto.token);
@@ -149,7 +267,20 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Resend verification email' })
-  @ApiOkResponse({ description: 'Verification email sent' })
+  @ApiHeader({
+    name: 'Authorization',
+    description: 'Bearer access_token',
+    required: true,
+    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
+  })
+  @ApiOkResponse({
+    description: 'Verification email sent',
+    schema: {
+      example: {
+        message: 'Verification email sent successfully',
+      },
+    },
+  })
   async resendVerification(@Request() req: RequestWithUser): Promise<void> {
     await this.authService.resendVerificationEmail(req.user.id);
   }

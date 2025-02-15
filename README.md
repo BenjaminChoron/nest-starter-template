@@ -2,18 +2,28 @@
 
 ## Description
 
-This is a starter template for a NestJS application. It includes a basic setup for a REST API with a PostgreSQL database on a docker container, user JWT authentication, swagger documentation and images upload.
+This is a starter template for a NestJS application. It includes a robust authentication system with JWT tokens, email verification, and password reset functionality. Built on top of PostgreSQL with Redis for token management.
 
 ## Stack
 
 - [NestJS](https://nestjs.com/)
 - [Docker](https://www.docker.com/)
 - [PostgreSQL](https://www.postgresql.org/)
+- [Redis](https://redis.io/)
 - [TypeORM](https://typeorm.io/)
 - [JWT](https://jwt.io/)
 - [Swagger](https://swagger.io/)
 - [Cloudinary](https://cloudinary.com/)
-- ...
+
+## Features
+
+- JWT-based authentication with access & refresh tokens
+- Token blacklisting with Redis
+- Email verification flow
+- Password reset functionality
+- User management
+- Comprehensive test coverage
+- Swagger API documentation
 
 ## Installation
 
@@ -27,11 +37,20 @@ $ cd project-name
 $ npm install
 ```
 
+## Configuration
+
+Create a `.env` file at the root of the project using the `.env.example` file as a template.
+
 ## Running the app
 
-- First, you need to create a `.env`file at the root of the project using the `.env.example` file as a template.
-- Then, you need to run `docker-compose up` at the root of the project to start the databases containers.
-- Then, you can run the app with the following commands:
+First, start the required services:
+
+```bash
+# Start PostgreSQL and Redis
+$ docker-compose up -d
+```
+
+Then run the application:
 
 ```bash
 # development
@@ -59,6 +78,48 @@ $ npm run test:cov
 
 ## Documentation
 
-To open Swagger documentation of the API routes, run the app and go to `http://localhost:3000/swagger` in your browser.
+The API documentation is available via Swagger. Once the application is running, visit:
+
+```
+http://localhost:3000/api
+```
 
 ![Swagger screenshot](/assets/screenshots/swagger.png)
+
+### Main Endpoints
+
+Authentication:
+
+- `POST /auth/register` - Register new user
+- `POST /auth/login` - Login user
+- `POST /auth/logout` - Logout user
+- `POST /auth/refresh` - Refresh access token
+- `GET /auth/me` - Get current user profile
+
+Email Verification:
+
+- `POST /auth/verify-email` - Verify email address
+- `POST /auth/resend-verification` - Resend verification email
+
+Password Management:
+
+- `POST /auth/forgot-password` - Request password reset
+- `POST /auth/reset-password` - Reset password
+
+## Testing
+
+The application includes comprehensive test coverage:
+
+- Unit tests for services
+- E2E tests for API endpoints
+- Integration tests for database operations
+
+Tests use a separate database and Redis instance. Ensure both are running:
+
+```bash
+# Create test database
+$ createdb auth_api_test
+
+# Verify Redis is running
+$ docker-compose ps
+```
