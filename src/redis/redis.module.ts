@@ -9,13 +9,22 @@ import Redis from 'ioredis';
     {
       provide: 'REDIS_CLIENT',
       useFactory: (configService: ConfigService) => {
-        return new Redis({
+        const client = new Redis({
           host: configService.get('REDIS_HOST', 'localhost'),
           port: configService.get('REDIS_PORT', 6379),
           enableOfflineQueue: false,
           lazyConnect: true,
           retryStrategy: () => null,
+          maxRetriesPerRequest: 0,
+          commandTimeout: 5000,
         });
+
+        // Handle connection errors
+        client.on('error', () => {
+          void client.disconnect();
+        });
+
+        return client;
       },
       inject: [ConfigService],
     },
@@ -30,7 +39,7 @@ export class RedisModule implements OnApplicationShutdown {
       const client = this.moduleRef.get('REDIS_CLIENT') as Redis;
 
       if (client.status !== 'end') {
-        await client.quit();
+        await client.disconnect();
       }
     } catch (error) {
       // Ignore cleanup errors

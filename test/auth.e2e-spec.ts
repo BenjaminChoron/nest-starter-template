@@ -32,9 +32,8 @@ describe('AuthController (e2e)', () => {
     dataSource = app.get(DataSource);
     redisClient = app.get('REDIS_CLIENT');
 
-    // Explicitly connect to Redis
-    await redisClient.connect();
     await app.init();
+    await redisClient.connect();
   });
 
   beforeEach(async () => {
@@ -53,15 +52,15 @@ describe('AuthController (e2e)', () => {
 
   afterAll(async () => {
     try {
-      if (redisClient.status === 'ready') {
+      if (redisClient?.status === 'ready') {
         await redisClient.flushall();
-        await redisClient.quit();
+        await redisClient.disconnect(false);
       }
 
-      await dataSource.destroy();
-      await app.close();
+      await dataSource?.destroy();
+      await app?.close();
     } catch (error) {
-      // Ignore cleanup errors
+      console.error('Cleanup error:', error);
     }
   });
 
