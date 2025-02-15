@@ -85,6 +85,7 @@ export class AuthService {
 
   async login(user: User): Promise<AuthResponseDto> {
     const tokens = await this.getTokens(user.id, user.email);
+    await this.usersService.setRefreshToken(user.id, tokens.refreshToken);
     await this.usersService.updateLastLogin(user.id);
 
     return new AuthResponseDto({

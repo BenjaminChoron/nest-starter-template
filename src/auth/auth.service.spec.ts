@@ -10,38 +10,17 @@ import { User } from '../users/entities/user.entity';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: UsersService;
+  let usersService: jest.Mocked<UsersService>;
   let tokenBlacklistService: TokenBlacklistService;
 
   const mockUser = {
     id: '123',
     email: 'test@example.com',
-    password: '$2b$10$test',
   } as User;
 
-  const mockUsersService = {
-    findByEmail: jest.fn(),
-    findById: jest.fn(),
-    create: jest.fn(),
-    setRefreshToken: jest.fn(),
-    validateRefreshToken: jest.fn(),
-    removeRefreshToken: jest.fn(),
-    updateLastLogin: jest.fn(),
-  };
-
-  const mockJwtService = {
-    signAsync: jest.fn(),
-    verifyAsync: jest.fn(),
-  };
-
-  const mockEmailService = {
-    sendVerificationEmail: jest.fn(),
-    sendPasswordResetEmail: jest.fn(),
-  };
-
-  const mockTokenBlacklistService = {
-    blacklist: jest.fn(),
-    isBlacklisted: jest.fn(),
+  const tokens = {
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
   };
 
   beforeEach(async () => {
@@ -50,32 +29,53 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: UsersService,
-          useValue: mockUsersService,
+          useValue: {
+            findByEmail: jest.fn(),
+            findById: jest.fn(),
+            updateLastLogin: jest.fn(),
+            setRefreshToken: jest.fn(),
+            removeRefreshToken: jest.fn(),
+            validateRefreshToken: jest.fn(),
+          },
         },
         {
           provide: JwtService,
-          useValue: mockJwtService,
+          useValue: {
+            signAsync: jest.fn(),
+          },
         },
         {
           provide: ConfigService,
-          useValue: { get: jest.fn() },
+          useValue: {
+            get: jest.fn(),
+          },
         },
         {
           provide: EmailService,
-          useValue: mockEmailService,
+          useValue: {
+            sendVerificationEmail: jest.fn(),
+          },
         },
         {
           provide: TokenBlacklistService,
-          useValue: mockTokenBlacklistService,
+          useValue: {
+            blacklist: jest.fn(),
+            isBlacklisted: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    usersService = module.get<UsersService>(UsersService);
+    usersService = module.get(UsersService);
     tokenBlacklistService = module.get<TokenBlacklistService>(
       TokenBlacklistService,
     );
+
+    // Setup default mock implementations
+    usersService.findById.mockResolvedValue(mockUser);
+    usersService.validateRefreshToken.mockResolvedValue(true);
+    jest.spyOn(service as any, 'getTokens').mockResolvedValue(tokens);
   });
 
   afterEach(() => {
@@ -84,13 +84,8 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should generate tokens and update last login', async () => {
-      const tokens = {
-        accessToken: 'access-token',
-        refreshToken: 'refresh-token',
-      };
-
-      mockJwtService.signAsync.mockResolvedValueOnce(tokens.accessToken);
-      mockJwtService.signAsync.mockResolvedValueOnce(tokens.refreshToken);
+      // Setup the resolved value for setRefreshToken
+      usersService.setRefreshToken.mockResolvedValueOnce(undefined);
 
       const result = await service.login(mockUser);
 
@@ -107,7 +102,7 @@ describe('AuthService', () => {
   describe('logout', () => {
     it('should blacklist token and remove refresh token', async () => {
       const token = 'test-token';
-      mockUsersService.findById.mockResolvedValueOnce(mockUser);
+      usersService.findById.mockResolvedValueOnce(mockUser);
 
       await service.logout(mockUser.id, token);
 
@@ -116,7 +111,7 @@ describe('AuthService', () => {
     });
 
     it('should throw if user not found', async () => {
-      mockUsersService.findById.mockResolvedValueOnce(null);
+      usersService.findById.mockResolvedValueOnce(null);
 
       await expect(service.logout('invalid-id', 'token')).rejects.toThrow(
         NotFoundException,
@@ -126,16 +121,6 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('should generate new tokens if refresh token is valid', async () => {
-      const tokens = {
-        accessToken: 'new-access-token',
-        refreshToken: 'new-refresh-token',
-      };
-
-      mockUsersService.findById.mockResolvedValueOnce(mockUser);
-      mockUsersService.validateRefreshToken.mockResolvedValueOnce(true);
-      mockJwtService.signAsync.mockResolvedValueOnce(tokens.accessToken);
-      mockJwtService.signAsync.mockResolvedValueOnce(tokens.refreshToken);
-
       const result = await service.refreshTokens(
         mockUser.id,
         'old-refresh-token',
@@ -149,8 +134,8 @@ describe('AuthService', () => {
     });
 
     it('should throw if refresh token is invalid', async () => {
-      mockUsersService.findById.mockResolvedValueOnce(mockUser);
-      mockUsersService.validateRefreshToken.mockResolvedValueOnce(false);
+      // Override the default mock for this test
+      usersService.validateRefreshToken.mockResolvedValueOnce(false);
 
       await expect(
         service.refreshTokens(mockUser.id, 'invalid-token'),
