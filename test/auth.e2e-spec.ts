@@ -218,5 +218,134 @@ describe('AuthController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(401);
     });
+
+    describe('Password Reset', () => {
+      beforeEach(async () => {
+        // Register user before testing password reset
+        await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(testUser);
+      });
+
+      it('should send reset token for existing email', () => {
+        return request(app.getHttpServer())
+          .post('/auth/forgot-password')
+          .send({ email: testUser.email })
+          .expect(201)
+          .expect(({ body }) => {
+            expect(body.message).toBe(
+              'If the email exists, a reset token has been sent',
+            );
+          });
+      });
+
+      it('should not reveal if email does not exist', () => {
+        return request(app.getHttpServer())
+          .post('/auth/forgot-password')
+          .send({ email: 'nonexistent@example.com' })
+          .expect(201)
+          .expect(({ body }) => {
+            expect(body.message).toBe(
+              'If the email exists, a reset token has been sent',
+            );
+          });
+      });
+    });
+
+    describe('Email Verification', () => {
+      let verificationToken: string;
+
+      beforeEach(async () => {
+        // Register a new user to get verification token
+        await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(testUser);
+
+        // Get token from user (in real app this would be sent via email)
+        const user = await dataSource
+          .getRepository('users')
+          .findOne({ where: { email: testUser.email } });
+
+        verificationToken = user.emailVerificationToken;
+      });
+
+      it('should verify email with valid token', () => {
+        return request(app.getHttpServer())
+          .post('/auth/verify-email')
+          .send({ token: verificationToken })
+          .expect(201);
+      });
+
+      it('should not verify with invalid token', () => {
+        return request(app.getHttpServer())
+          .post('/auth/verify-email')
+          .send({ token: 'invalid-token' })
+          .expect(401);
+      });
+
+      it('should resend verification email', async () => {
+        // Login first
+        await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(testUser);
+
+        const loginResponse = await request(app.getHttpServer())
+          .post('/auth/login')
+          .send(testUser);
+
+        return request(app.getHttpServer())
+          .post('/auth/resend-verification')
+          .set('Authorization', `Bearer ${loginResponse.body.accessToken}`)
+          .expect(201);
+      });
+    });
+
+    describe('Token Management', () => {
+      beforeEach(async () => {
+        // Register and login before each test
+        await request(app.getHttpServer())
+          .post('/auth/register')
+          .send(testUser);
+
+        const loginResponse = await request(app.getHttpServer())
+          .post('/auth/login')
+          .send(testUser);
+
+        accessToken = loginResponse.body.accessToken;
+        refreshToken = loginResponse.body.refreshToken;
+      });
+
+      it('should not allow using same token after logout', async () => {
+        // Logout
+        await request(app.getHttpServer())
+          .post('/auth/logout')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(201);
+
+        // Try to use token
+        return request(app.getHttpServer())
+          .get('/auth/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(401);
+      });
+
+      it('should allow login after logout', async () => {
+        // Logout
+        await request(app.getHttpServer())
+          .post('/auth/logout')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(201);
+
+        // Login again
+        return request(app.getHttpServer())
+          .post('/auth/login')
+          .send(testUser)
+          .expect(201)
+          .expect(({ body }) => {
+            expect(body.accessToken).toBeDefined();
+            expect(body.refreshToken).toBeDefined();
+          });
+      });
+    });
   });
 });

@@ -205,7 +205,7 @@ export class AuthService {
       }
 
       // Blacklist the current access token
-      this.tokenBlacklistService.blacklist(token);
+      await this.tokenBlacklistService.blacklist(token);
 
       // Remove refresh token
       await this.usersService.removeRefreshToken(userId);
@@ -238,17 +238,31 @@ export class AuthService {
   }
 
   async generateResetToken(email: string): Promise<void> {
-    const user = await this.usersService.findByEmail(email);
+    try {
+      const user = await this.usersService.findByEmail(email);
 
-    const token = await this.jwtService.signAsync(
-      { sub: user.id, email: user.email },
-      {
-        secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
-        expiresIn: '15m',
-      },
-    );
+      if (user) {
+        const token = await this.jwtService.signAsync(
+          { sub: user.id, email: user.email },
+          {
+            secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
+            expiresIn: '15m',
+          },
+        );
 
-    await this.emailService.sendPasswordResetEmail(email, token);
+        await this.emailService.sendPasswordResetEmail(email, token);
+      }
+
+      // Always return the same message whether the email exists or not
+      // This prevents user enumeration
+      this.logger.debug(`Password reset requested for email: ${email}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to generate reset token for ${email}`,
+        error?.stack,
+      );
+      // Still return success to prevent user enumeration
+    }
   }
 
   private async generateEmailVerificationToken(user: User): Promise<string> {
