@@ -33,7 +33,6 @@ describe('AuthController (e2e)', () => {
     redisClient = app.get('REDIS_CLIENT');
 
     await app.init();
-    await redisClient.connect();
   });
 
   beforeEach(async () => {
@@ -301,6 +300,8 @@ describe('AuthController (e2e)', () => {
     });
 
     describe('Token Management', () => {
+      let userAccessToken: string;
+
       beforeEach(async () => {
         // Register and login before each test
         await request(app.getHttpServer())
@@ -311,21 +312,20 @@ describe('AuthController (e2e)', () => {
           .post('/auth/login')
           .send(testUser);
 
-        accessToken = loginResponse.body.accessToken;
-        refreshToken = loginResponse.body.refreshToken;
+        userAccessToken = loginResponse.body.accessToken;
       });
 
       it('should not allow using same token after logout', async () => {
         // Logout
         await request(app.getHttpServer())
           .post('/auth/logout')
-          .set('Authorization', `Bearer ${accessToken}`)
+          .set('Authorization', `Bearer ${userAccessToken}`)
           .expect(201);
 
         // Try to use token
-        return request(app.getHttpServer())
+        await request(app.getHttpServer())
           .get('/auth/me')
-          .set('Authorization', `Bearer ${accessToken}`)
+          .set('Authorization', `Bearer ${userAccessToken}`)
           .expect(401);
       });
 
@@ -333,7 +333,7 @@ describe('AuthController (e2e)', () => {
         // Logout
         await request(app.getHttpServer())
           .post('/auth/logout')
-          .set('Authorization', `Bearer ${accessToken}`)
+          .set('Authorization', `Bearer ${userAccessToken}`)
           .expect(201);
 
         // Login again

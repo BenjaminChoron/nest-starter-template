@@ -115,7 +115,7 @@ export class AuthController {
   @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
-  @ApiOkResponse({ description: 'Reset token sent successfully' })
+  @ApiResponse({ status: 201, description: 'Reset token sent successfully' })
   async forgotPassword(@Body('email') email: string) {
     await this.authService.generateResetToken(email);
 

@@ -8,20 +8,19 @@ import Redis from 'ioredis';
   providers: [
     {
       provide: 'REDIS_CLIENT',
-      useFactory: (configService: ConfigService) => {
+      useFactory: async (configService: ConfigService) => {
         const client = new Redis({
           host: configService.get('REDIS_HOST', 'localhost'),
           port: configService.get('REDIS_PORT', 6379),
           enableOfflineQueue: false,
-          lazyConnect: true,
+          lazyConnect: false,
           retryStrategy: () => null,
           maxRetriesPerRequest: 0,
           commandTimeout: 5000,
         });
 
-        // Handle connection errors
-        client.on('error', () => {
-          void client.disconnect();
+        client.on('error', err => {
+          console.error('Redis connection error:', err);
         });
 
         return client;
