@@ -1,44 +1,44 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
 import { Role } from '../enums/role.enum';
 
 @Exclude()
 export class UserResponseDto {
+  @ApiProperty({ example: '123e4567-e89b-12d3-a456-426614174000' })
   @Expose()
-  @ApiProperty()
   id: string;
 
+  @ApiProperty({ example: 'user@example.com' })
   @Expose()
-  @ApiProperty()
   email: string;
 
+  @ApiProperty({ enum: Role, example: Role.USER })
   @Expose()
-  @ApiPropertyOptional()
+  role: Role;
+
+  @ApiProperty({ example: 'https://example.com/avatar.jpg', required: false })
+  @Expose()
   avatar?: string;
 
+  @ApiProperty({ example: true })
   @Expose()
-  @ApiProperty()
   isEmailVerified: boolean;
 
+  @ApiProperty({ example: '2024-02-16T12:00:00Z' })
   @Expose()
-  @ApiPropertyOptional()
-  lastLoginAt?: Date;
-
-  @Expose()
-  @ApiProperty()
   createdAt: Date;
 
+  @ApiProperty({ example: '2024-02-16T12:00:00Z', required: false })
   @Expose()
-  @ApiProperty()
+  lastLoginAt?: Date;
+
+  @ApiProperty({ example: '2024-02-16T12:00:00Z' })
+  @Expose()
   updatedAt: Date;
 
+  @ApiProperty({ example: true })
   @Expose()
-  @ApiProperty()
   isActive: boolean;
-
-  @Expose()
-  @ApiProperty({ enum: Role, default: Role.USER })
-  role: Role;
 
   constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial);

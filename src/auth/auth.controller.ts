@@ -8,11 +8,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
-  ApiConflictResponse,
-  ApiCreatedResponse,
   ApiHeader,
   ApiOkResponse,
   ApiOperation,
@@ -26,7 +23,6 @@ import { Public } from './decorators/public.decorator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalGuard } from './guards/local-auth.guard';
-import { CreateUserDto } from '../users/dtos/create-user.dto';
 import { User } from '../users/entities/user.entity';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { UserResponseDto } from '../users/dtos/user-response.dto';
@@ -34,9 +30,18 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithUser } from './interfaces/request-with-user.interface';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { VerifyEmailDto } from './dtos/verify-email.dto';
+import { RegisterDto } from './dtos/register.dto';
+import { LoginDto } from './dtos/login.dto';
+import { ErrorResponseDto } from './dtos/error-response.dto';
+import { TokensResponseDto } from './dtos/tokens-response.dto';
+import {
+  GetCurrentUser,
+  GetCurrentUserId,
+} from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
+@ApiBearerAuth()
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -44,69 +49,49 @@ export class AuthController {
 
   @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Register a new user' })
-  @ApiBody({
-    schema: {
-      example: {
-        email: 'user@example.com',
-        password: 'Pa$$w0rd!',
-      },
-    },
+  @ApiOperation({
+    summary: 'Register new user',
+    description: 'Create a new user account and return authentication tokens',
   })
-  @ApiCreatedResponse({
-    description: 'Registration successful',
-    schema: {
-      example: {
-        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
-        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
-        user: {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          email: 'user@example.com',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
-        },
-      },
-    },
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+    type: AuthResponseDto,
   })
-  @ApiBadRequestResponse({ description: 'Bad request' })
-  @ApiConflictResponse({ description: 'Email already exists' })
-  async register(
-    @Body() createUserDto: CreateUserDto,
-  ): Promise<AuthResponseDto> {
-    return this.authService.register(createUserDto);
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid input data',
+    type: ErrorResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Email already exists',
+    type: ErrorResponseDto,
+  })
+  async register(@Body() registerDto: RegisterDto): Promise<AuthResponseDto> {
+    return this.authService.register(registerDto);
   }
 
   @Public()
   @UseGuards(LocalGuard)
   @Post('login')
-  @ApiOperation({ summary: 'Login with email and password' })
-  @ApiBody({
-    schema: {
-      example: {
-        email: 'user@example.com',
-        password: 'Pa$$w0rd!',
-      },
-    },
+  @ApiOperation({
+    summary: 'User login',
+    description: 'Authenticate user and return access/refresh tokens',
   })
-  @ApiCreatedResponse({
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 201,
     description: 'Login successful',
-    schema: {
-      example: {
-        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
-        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
-        user: {
-          id: '123e4567-e89b-12d3-a456-426614174000',
-          email: 'user@example.com',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
-        },
-      },
-    },
+    type: AuthResponseDto,
   })
-  @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async login(
-    @Request() req: ExpressRequest & { user: User },
-  ): Promise<AuthResponseDto> {
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid credentials',
+    type: ErrorResponseDto,
+  })
+  async login(@Request() req: RequestWithUser): Promise<AuthResponseDto> {
     return this.authService.login(req.user);
   }
 
@@ -140,50 +125,53 @@ export class AuthController {
 
   @Post('refresh')
   @UseGuards(RefreshTokenGuard)
-  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiOperation({
+    summary: 'Refresh tokens',
+    description: 'Generate new access/refresh tokens using refresh token',
+  })
   @ApiHeader({
     name: 'Authorization',
     description: 'Bearer refresh_token',
     required: true,
-    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
   })
-  @ApiCreatedResponse({
+  @ApiResponse({
+    status: 201,
     description: 'Tokens refreshed successfully',
-    schema: {
-      example: {
-        accessToken: 'eyJhbGciOiJIUzI1NiIs...',
-        refreshToken: 'eyJhbGciOiJIUzI1NiIs...',
-      },
-    },
+    type: TokensResponseDto,
   })
-  @ApiUnauthorizedResponse({ description: 'Invalid refresh token' })
-  async refreshTokens(@Request() req: RequestWithUser) {
-    const user = req.user;
-    const refreshToken = req.get('Authorization').replace('Bearer', '').trim();
-
-    return this.authService.refreshTokens(user.id, refreshToken);
+  @ApiResponse({
+    status: 401,
+    description: 'Invalid refresh token',
+    type: ErrorResponseDto,
+  })
+  async refreshTokens(
+    @GetCurrentUserId() userId: string,
+    @GetCurrentUser('refreshToken') refreshToken: string,
+  ): Promise<TokensResponseDto> {
+    return this.authService.refreshTokens(userId, refreshToken);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Logout user' })
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Bearer access_token',
-    required: true,
-    schema: { example: 'Bearer eyJhbGciOiJIUzI1NiIs...' },
+  @ApiOperation({
+    summary: 'User logout',
+    description: 'Invalidate current access/refresh tokens',
   })
   @ApiResponse({
-    status: 201,
-    description: 'Successfully logged out',
-    schema: { example: { message: 'Logout successful' } },
+    status: 200,
+    description: 'Logged out successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async logout(@Request() req: RequestWithUser): Promise<void> {
-    const token = req.get('authorization').replace('Bearer', '').trim();
-    this.logger.debug(`User ${req.user.id} logging out`);
-    await this.authService.logout(req.user.id, token);
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+    type: ErrorResponseDto,
+  })
+  async logout(
+    @GetCurrentUserId() userId: string,
+    @GetCurrentUser('refreshToken') refreshToken: string,
+  ): Promise<void> {
+    this.logger.debug(`User ${userId} logging out`);
+    await this.authService.logout(userId, refreshToken);
   }
 
   @Public()

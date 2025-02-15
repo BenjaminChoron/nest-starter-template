@@ -36,6 +36,7 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { memoryStorage } from 'multer';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from './enums/role.enum';
+import { RoleEnum } from './enums/role.enum';
 
 @ApiTags('users')
 @Controller('users')
@@ -158,7 +159,19 @@ export class UsersController {
 
   @Get()
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiOperation({
+    summary: 'Get all users',
+    description: 'Retrieve all users (Admin access required)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users retrieved successfully',
+    type: [UserResponseDto],
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersService.findAll();
 
@@ -167,7 +180,26 @@ export class UsersController {
 
   @Patch(':id/role')
   @Roles(Role.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Update user role (Super Admin only)' })
+  @ApiOperation({
+    summary: 'Update user role',
+    description: "Update a user's role (Super Admin access required)",
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'User ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @ApiBody({ type: RoleEnum })
+  @ApiResponse({
+    status: 200,
+    description: 'User role updated successfully',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
   async updateRole(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('role') role: Role,
