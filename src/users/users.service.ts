@@ -167,8 +167,23 @@ export class UsersService {
   }
 
   private extractPublicId(url: string): string {
-    const matches = url.match(/\/v\d+\/([^/]+)\./);
+    if (!url) return '';
 
-    return matches ? matches[1] : '';
+    try {
+      // Example URL: https://res.cloudinary.com/demo/image/upload/v1234/nest-starter/image.jpg
+      const matches = url.match(/\/upload\/(?:v\d+\/)?(.+)\./);
+
+      if (!matches?.length) {
+        this.logger.warn(`Could not extract public ID from URL: ${url}`);
+
+        return '';
+      }
+
+      return matches[1]; // Returns "nest-starter/image"
+    } catch (error) {
+      this.logger.warn(`Failed to extract public ID from URL: ${url}`);
+
+      return '';
+    }
   }
 }

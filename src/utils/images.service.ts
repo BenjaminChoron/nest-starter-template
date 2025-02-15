@@ -59,7 +59,18 @@ export class ImagesService {
 
   async delete(publicId: string): Promise<void> {
     try {
-      await v2.uploader.destroy(publicId);
+      if (!publicId) {
+        this.logger.warn('No public ID provided for deletion');
+
+        return;
+      }
+
+      const result = await v2.uploader.destroy(publicId);
+
+      if (result.result !== 'ok') {
+        throw new Error(`Failed to delete image: ${result.result}`);
+      }
+
       this.logger.debug(
         `File deleted successfully from Cloudinary: ${publicId}`,
       );
