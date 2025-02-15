@@ -13,6 +13,10 @@ import { TokenBlacklistService } from './token-blacklist.service';
 import { RedisModule } from '../redis/redis.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { PasswordStrengthService } from './services/password-strength.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '../users/entities/user.entity';
+import { PasswordHistoryService } from './services/password-history.service';
 
 @Module({
   imports: [
@@ -31,6 +35,7 @@ import { RolesGuard } from './guards/roles.guard';
     }),
     EmailModule,
     RedisModule,
+    TypeOrmModule.forFeature([User]),
   ],
   providers: [
     AuthService,
@@ -40,6 +45,8 @@ import { RolesGuard } from './guards/roles.guard';
     TokenBlacklistService,
     JwtAuthGuard,
     RolesGuard,
+    PasswordStrengthService,
+    PasswordHistoryService,
   ],
   controllers: [AuthController],
   exports: [AuthService, JwtAuthGuard, TokenBlacklistService, RolesGuard],

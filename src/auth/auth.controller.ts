@@ -39,6 +39,8 @@ import {
   GetCurrentUser,
   GetCurrentUserId,
 } from './decorators/current-user.decorator';
+import { PasswordStrengthResponseDto } from './dtos/password-strength.dto';
+import { PasswordStrengthService } from './services/password-strength.service';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -52,7 +54,10 @@ import {
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly passwordStrengthService: PasswordStrengthService,
+  ) {}
 
   @Throttle({ default: { limit: 3, ttl: 60000 } })
   @Public()
@@ -287,5 +292,33 @@ export class AuthController {
   })
   async resendVerification(@Request() req: RequestWithUser): Promise<void> {
     await this.authService.resendVerificationEmail(req.user.id);
+  }
+
+  @Post('password/check-strength')
+  @Public()
+  @ApiOperation({
+    summary: 'Check password strength',
+    description: 'Analyze password strength and get feedback',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        password: {
+          type: 'string',
+          example: 'MyP@ssw0rd123',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Password strength analysis',
+    type: PasswordStrengthResponseDto,
+  })
+  async checkPasswordStrength(
+    @Body('password') password: string,
+  ): Promise<PasswordStrengthResponseDto> {
+    return this.passwordStrengthService.checkStrength(password);
   }
 }

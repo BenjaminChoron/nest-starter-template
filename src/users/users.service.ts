@@ -186,6 +186,13 @@ export class UsersService {
     return this.update(userId, { role });
   }
 
+  async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    await this.usersRepository.update(userId, {
+      password: hashedPassword,
+      refreshToken: null, // Invalidate all sessions
+    });
+  }
+
   private extractPublicId(url: string): string {
     if (!url) return '';
 

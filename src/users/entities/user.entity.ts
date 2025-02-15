@@ -90,6 +90,12 @@ export class User {
   })
   role: Role;
 
+  @Column('simple-array', { nullable: true })
+  previousPasswords: string[];
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastPasswordChange: Date;
+
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }

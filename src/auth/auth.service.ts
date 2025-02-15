@@ -18,6 +18,7 @@ import { User } from 'src/users/entities/user.entity';
 import { AuthResponseDto } from './dtos/auth-response.dto';
 import { EmailService } from '../email/email.service';
 import { TokenBlacklistService } from './token-blacklist.service';
+import { PasswordHistoryService } from './services/password-history.service';
 
 type AuthInput = { email: string; password: string };
 type AuthResult = {
@@ -35,6 +36,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
     private readonly tokenBlacklistService: TokenBlacklistService,
+    private readonly passwordHistoryService: PasswordHistoryService,
   ) {}
 
   async authenticate(input: AuthInput): Promise<AuthResult> {
@@ -217,20 +219,44 @@ export class AuthService {
     }
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
-      });
+  async changePassword(userId: string, newPassword: string): Promise<void> {
+    // Check if password was recently used
+    const isReused = await this.passwordHistoryService.isPasswordReused(
+      userId,
+      newPassword,
+    );
 
-      const user = await this.usersService.findById(payload.sub);
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-      await this.usersService.update(user.id, { password: hashedPassword });
-      await this.usersService.removeRefreshToken(user.id); // Invalidate all sessions
-    } catch (error) {
-      throw new UnauthorizedException('Invalid or expired reset token');
+    if (isReused) {
+      throw new BadRequestException(
+        'Password was recently used. Please choose a different password.',
+      );
     }
+
+    // Update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersService.updatePassword(userId, hashedPassword);
+
+    // Add to history
+    await this.passwordHistoryService.addToHistory(userId, newPassword);
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const userId = await this.verifyResetToken(token);
+
+    // Check password history
+    const isReused = await this.passwordHistoryService.isPasswordReused(
+      userId,
+      newPassword,
+    );
+
+    if (isReused) {
+      throw new BadRequestException(
+        'Password was recently used. Please choose a different password.',
+      );
+    }
+
+    // Reset password and update history
+    await this.changePassword(userId, newPassword);
   }
 
   async generateResetToken(email: string): Promise<void> {
@@ -276,5 +302,16 @@ export class AuthService {
     await this.usersService.setEmailVerificationToken(user.id, token, expires);
 
     return token;
+  }
+
+  private async verifyResetToken(token: string): Promise<string> {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('JWT_RESET_PASSWORD_SECRET'),
+      });
+      return payload.sub;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
   }
 }

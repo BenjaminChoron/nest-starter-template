@@ -451,7 +451,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"Pa$$w0rd!\"\n}",
+              "raw": "{\n    \"token\": \"your-reset-token-here\",\n    \"newPassword\": \"NewP@ssw0rd123!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -460,7 +460,16 @@
             },
             "url": "{{BASE_URL}}/auth/reset-password"
           },
-          "response": []
+          "response": [
+            {
+              "status": "400",
+              "body": {
+                "message": "Password was recently used. Please choose a different password.",
+                "error": "Bad Request",
+                "statusCode": 400
+              }
+            }
+          ]
         },
         {
           "name": "refresh",
@@ -526,6 +535,28 @@
             "method": "POST",
             "header": [],
             "url": "{{BASE_URL}}/auth/logout"
+          },
+          "response": []
+        },
+        {
+          "name": "checkPasswordStrength",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"password\": \"MyP@ssw0rd123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/auth/password/check-strength",
+              "host": ["{{BASE_URL}}"],
+              "path": ["auth", "password", "check-strength"]
+            }
           },
           "response": []
         }

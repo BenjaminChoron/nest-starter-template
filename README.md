@@ -10,6 +10,7 @@ A production-ready NestJS starter template with robust authentication, role-base
 - 👥 Role-based access control (User, Admin, Super Admin)
 - 📧 Email verification flow
 - 🔑 Secure password reset
+- 🔒 Enhanced password security
 - 📁 File uploads with Cloudinary
 - 🚫 Token blacklisting with Redis
 - 📝 OpenAPI/Swagger documentation
@@ -68,6 +69,17 @@ http://localhost:3000/api
 - `POST /auth/refresh` - Refresh access token
 - `POST /auth/logout` - Invalidate tokens
 - `GET /auth/me` - Get current user
+- `POST /auth/password/check-strength` - Analyze password strength
+
+**Password Management:**
+
+- `POST /auth/forgot-password` - Request password reset
+- `POST /auth/reset-password` - Reset password with token
+
+**Email Verification:**
+
+- `POST /auth/verify-email` - Verify email address
+- `POST /auth/resend-verification` - Resend verification email
 
 **Users:**
 
@@ -95,3 +107,41 @@ npm run test:cov
 ## License
 
 MIT
+
+## Password Security Features
+
+The application includes enhanced password security:
+
+- Password strength analysis using zxcvbn
+
+  - Score-based evaluation (0-4)
+  - Crack time estimation
+  - Detailed feedback and suggestions
+
+- Password History Management
+
+  - Prevents reuse of last 5 passwords
+  - Tracks password change dates
+  - Enforces password change policies
+
+- Password Validation
+
+  - Minimum length: 8 characters
+  - Must contain uppercase & lowercase letters
+  - Must contain numbers
+  - Must contain special characters
+  - Cannot reuse recent passwords
+
+- Secure Reset Flow
+  - Time-limited reset tokens
+  - Secure email delivery
+  - Previous session invalidation
+  - Password history validation
+
+## API Security Features
+
+- Rate limiting on sensitive endpoints
+- Token blacklisting
+- Session management
+- Email verification
+- Role-based access control
