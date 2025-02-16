@@ -5,6 +5,7 @@ import {
   Logger,
   Post,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -59,7 +60,7 @@ export class AuthController {
     private readonly passwordStrengthService: PasswordStrengthService,
   ) {}
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Public()
   @Post('register')
   @ApiOperation({
@@ -86,7 +87,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Public()
   @UseGuards(LocalGuard)
   @Post('login')
@@ -191,7 +192,7 @@ export class AuthController {
     await this.authService.logout(userId, refreshToken);
   }
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Public()
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
@@ -217,7 +218,7 @@ export class AuthController {
     return { message: 'If the email exists, a reset token has been sent' };
   }
 
-  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Public()
   @Post('reset-password')
   @ApiOperation({ summary: 'Reset password using token' })
@@ -239,15 +240,23 @@ export class AuthController {
   })
   @ApiUnauthorizedResponse({ description: 'Invalid or expired token' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    await this.authService.resetPassword(
-      resetPasswordDto.token,
-      resetPasswordDto.newPassword,
-    );
+    try {
+      await this.authService.resetPassword(
+        resetPasswordDto.token,
+        resetPasswordDto.newPassword,
+      );
 
-    return { message: 'Password reset successfully' };
+      return { message: 'Password reset successfully' };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException(error.message);
+      }
+
+      throw error;
+    }
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Public()
   @Post('verify-email')
   @ApiOperation({ summary: 'Verify email address' })
