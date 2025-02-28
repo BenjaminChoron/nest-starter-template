@@ -3,9 +3,9 @@ import { APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import { AuthModule } from './auth/auth.module';
 import { dataSourceOptions } from './database/data-source';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [

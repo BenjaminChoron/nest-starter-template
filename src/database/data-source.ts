@@ -22,7 +22,7 @@ export const dataSourceOptions: DataSourceOptions & SeederOptions = {
   logging: isDevelopment,
   logger: isDevelopment ? 'advanced-console' : 'simple-console',
   maxQueryExecutionTime: isDevelopment ? 1000 : 2000, // Log slow queries
-  entities: [join(__dirname, '../**/*.entity.{ts,js}')],
+  entities: [join(__dirname, '../**/*.orm-entity.{ts,js}')],
   migrations: [join(__dirname, './migrations/*.{ts,js}')],
   migrationsTableName: 'migrations',
   ssl: isProduction

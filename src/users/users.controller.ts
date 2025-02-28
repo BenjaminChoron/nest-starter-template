@@ -28,13 +28,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { JwtAuthGuard } from '../modules/auth/infrastructure/guards/jwt-auth.guard';
+import { RolesGuard } from '../modules/auth/infrastructure/guards/roles.guard';
 import { UsersService } from './users.service';
 import { UserResponseDto } from './dtos/user-response.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { memoryStorage } from 'multer';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { Roles } from '../modules/auth/decorators/roles.decorator';
 import { Role } from './enums/role.enum';
 import { RoleEnum } from './enums/role.enum';
 
