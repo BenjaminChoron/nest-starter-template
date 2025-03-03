@@ -23,4 +23,10 @@ export class UserOrmEntity {
 
   @Column({ name: 'refresh_token', nullable: true })
   refreshToken?: string;
+
+  @Column('text', { array: true, name: 'password_history', default: [] })
+  passwordHistory: string[];
+
+  @Column({ name: 'last_password_change', type: 'timestamp', nullable: true })
+  lastPasswordChange?: Date;
 }

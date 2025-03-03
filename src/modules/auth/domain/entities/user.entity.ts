@@ -12,6 +12,8 @@ export class User extends AggregateRoot {
   private email: Email;
   private password: Password;
   private isVerified: boolean;
+  private passwordHistory: string[] = [];
+  private lastPasswordChange?: Date;
 
   constructor(props: { id: UserId; email: Email; password: Password }) {
     super();
@@ -53,6 +55,8 @@ export class User extends AggregateRoot {
 
   async updatePassword(newPassword: string): Promise<void> {
     this.password = await Password.create(newPassword);
+    this.passwordHistory.push(this.password.getValue());
+    this.lastPasswordChange = new Date();
     this.apply(new PasswordResetEvent(this.id.getValue()));
   }
 
@@ -67,5 +71,13 @@ export class User extends AggregateRoot {
 
   getPassword(): string {
     return this.password.getValue();
+  }
+
+  getPasswordHistory(): string[] {
+    return this.passwordHistory;
+  }
+
+  getLastPasswordChange(): Date | undefined {
+    return this.lastPasswordChange;
   }
 }

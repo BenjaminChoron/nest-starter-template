@@ -4,6 +4,7 @@ import { ResetPasswordCommand } from '../reset-password.command';
 import { TokenService } from '../../../domain/services/token.service';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { InvalidTokenException } from '../../../domain/exceptions/invalid-token.exception';
+import { PasswordPolicyService } from '../../../domain/services/password-policy.service';
 
 @CommandHandler(ResetPasswordCommand)
 export class ResetPasswordHandler
@@ -13,6 +14,7 @@ export class ResetPasswordHandler
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
     private readonly tokenService: TokenService,
+    private readonly passwordPolicyService: PasswordPolicyService,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<void> {
@@ -22,6 +24,14 @@ export class ResetPasswordHandler
     if (!user) {
       throw new InvalidTokenException();
     }
+
+    // Check password history and age
+    await this.passwordPolicyService.validatePasswordPolicy(
+      command.newPassword,
+      user.getId(),
+      user.getPasswordHistory(),
+      user.getLastPasswordChange(),
+    );
 
     await user.updatePassword(command.newPassword);
     await this.userRepository.save(user);
