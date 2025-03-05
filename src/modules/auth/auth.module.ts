@@ -28,6 +28,7 @@ import { CheckPasswordStrengthHandler } from './application/commands/handlers/ch
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { JwtRefreshStrategy } from './infrastructure/strategies/jwt-refresh.strategy';
+import { TokenBlacklistService } from './infrastructure/services/token-blacklist.service';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { JwtRefreshStrategy } from './infrastructure/strategies/jwt-refresh.stra
     JwtStrategy,
     LocalStrategy,
     JwtRefreshStrategy,
+    TokenBlacklistService,
   ],
 })
 export class AuthModule {}

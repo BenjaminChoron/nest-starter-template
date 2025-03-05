@@ -116,4 +116,21 @@ export class TokenService {
       throw new InvalidTokenException();
     }
   }
+
+  getRefreshTokenTTL(): number {
+    const expiration = this.configService.get<string>('JWT_REFRESH_EXPIRATION');
+    const match = expiration.match(/^(\d+)([dhms])$/);
+    if (!match) return 7 * 24 * 60 * 60;
+
+    const [, value, unit] = match;
+
+    const multipliers: { [key: string]: number } = {
+      d: 86400,
+      h: 3600,
+      m: 60,
+      s: 1,
+    };
+
+    return parseInt(value) * multipliers[unit];
+  }
 }
