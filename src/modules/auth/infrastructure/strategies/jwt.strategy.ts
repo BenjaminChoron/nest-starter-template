@@ -3,9 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { JwtPayload } from '../../domain/interfaces/jwt-payload.interface';
+import { User } from '../../domain/entities/user.entity';
+import { UserId } from '../../domain/value-objects/user-id.value-object';
+import { Email } from '../../domain/value-objects/email.value-object';
+import { Password } from '../../domain/value-objects/password.value-object';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -15,6 +19,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload) {
-    return { id: payload.sub, email: payload.email };
+    return User.create({
+      id: new UserId(payload.sub),
+      email: new Email(payload.email),
+      password: await Password.create(''),
+    });
   }
 }

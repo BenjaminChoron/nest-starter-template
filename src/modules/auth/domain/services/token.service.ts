@@ -1,41 +1,58 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../entities/user.entity';
 import { TokenExpiredException } from '../exceptions/token-expired.exception';
 import { InvalidTokenException } from '../exceptions/invalid-token.exception';
+import { JwtPayload } from 'jsonwebtoken';
+import { IUserRepository } from '../repositories/user.repository.interface';
 
 @Injectable()
 export class TokenService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject('IUserRepository')
+    private readonly userRepository: IUserRepository,
   ) {}
 
+  async generateTokens(
+    user: User,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.generateAccessToken(user),
+      this.generateRefreshToken(user),
+    ]);
+
+    // Store refresh token in user entity
+    user.setRefreshToken(refreshToken);
+    await this.userRepository.save(user); // Save to persist the refresh token
+
+    return { accessToken, refreshToken };
+  }
+
   async generateAccessToken(user: User): Promise<string> {
-    return this.jwtService.signAsync(
-      {
-        sub: user.getId(),
-        email: user.getEmail(),
-      },
-      {
-        secret: this.configService.get('JWT_ACCESS_SECRET'),
-        expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION', '15m'),
-      },
-    );
+    const payload: JwtPayload = {
+      sub: user.getId(),
+      email: user.getEmail(),
+    };
+
+    return this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_ACCESS_SECRET'),
+      expiresIn: this.configService.get('JWT_ACCESS_EXPIRATION'),
+    });
   }
 
   async generateRefreshToken(user: User): Promise<string> {
-    return this.jwtService.signAsync(
-      {
-        sub: user.getId(),
-        email: user.getEmail(),
-      },
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION', '7d'),
-      },
-    );
+    const payload: JwtPayload = {
+      sub: user.getId(),
+      email: user.getEmail(),
+    };
+
+    return this.jwtService.signAsync(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get('JWT_REFRESH_EXPIRATION'),
+    });
   }
 
   async generateEmailToken(payload: {

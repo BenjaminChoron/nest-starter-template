@@ -14,7 +14,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"StrongP@ss123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -47,7 +47,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"Pa$$w0rd!\"\n}",
+              "raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"StrongP@ss123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -120,7 +120,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"token\": \"reset-token\",\n    \"newPassword\": \"NewPa$$w0rd!\"\n}",
+              "raw": "{\n    \"token\": \"your-reset-token\",\n    \"newPassword\": \"NewStrongP@ss123\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -148,6 +148,49 @@
             "url": "{{BASE_URL}}/auth/password/check-strength"
           },
           "response": []
+        },
+        {
+          "name": "refresh",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{REFRESH_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{BASE_URL}}/auth/refresh"
+          }
+        },
+        {
+          "name": "logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', '');",
+                  "    pm.collectionVariables.set('REFRESH_TOKEN', '');",
+                  "    console.log('Tokens cleared after logout');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ACCESS_TOKEN}}",
+                "type": "text"
+              }
+            ],
+            "url": "{{BASE_URL}}/auth/logout"
+          }
         }
       ]
     }
@@ -185,6 +228,19 @@
           "    } catch (e) {",
           "        console.error('Error parsing token:', e);",
           "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.response.code === 201 && pm.request.url.toString().includes('/auth/login')) {",
+          "    const jsonData = pm.response.json();",
+          "    pm.collectionVariables.set('ACCESS_TOKEN', jsonData.accessToken);",
+          "    pm.collectionVariables.set('REFRESH_TOKEN', jsonData.refreshToken);",
           "}"
         ]
       }

@@ -10,26 +10,21 @@ export class RefreshTokenHandler
   implements ICommandHandler<RefreshTokenCommand, TokensResponseDto>
 {
   constructor(
-    private readonly tokenService: TokenService,
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
+    private readonly tokenService: TokenService,
   ) {}
 
   async execute(command: RefreshTokenCommand): Promise<TokensResponseDto> {
-    const payload = await this.tokenService.verifyRefreshToken(
-      command.refreshToken,
-    );
-    const user = await this.userRepository.findById(payload.sub);
+    const user = await this.userRepository.findById(command.userId);
 
-    if (!user) {
+    if (!user || user.getRefreshToken() !== command.refreshToken) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const [accessToken, refreshToken] = await Promise.all([
-      this.tokenService.generateAccessToken(user),
-      this.tokenService.generateRefreshToken(user),
-    ]);
+    // Generate new token pair
+    const tokens = await this.tokenService.generateTokens(user);
 
-    return { accessToken, refreshToken };
+    return tokens;
   }
 }

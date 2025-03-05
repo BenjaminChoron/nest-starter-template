@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthenticateUserQuery } from 'src/modules/auth/application/queries/authenticate-user.query';
@@ -20,6 +20,10 @@ import { CurrentUser } from '../decorators/current-user.decorator';
 import { CheckPasswordStrengthDto } from '../../application/dtos/check-password-strength.dto';
 import { CheckPasswordStrengthCommand } from '../../application/commands/check-password-strength.command';
 import { PasswordStrengthResponseDto } from '../../application/dtos/password-strength-response.dto';
+import { JwtRefreshGuard } from '../guards/jwt-refresh.guard';
+import { TokensResponseDto } from '../../application/dtos/tokens-response.dto';
+import { RefreshTokenCommand } from '../../application/commands/refresh-token.command';
+import { LogoutCommand } from '../../application/commands/logout.command';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -90,5 +94,24 @@ export class AuthController {
     return this.commandBus.execute(
       new CheckPasswordStrengthCommand(dto.password),
     );
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshGuard)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 201, type: TokensResponseDto })
+  async refresh(@CurrentUser() user: User): Promise<TokensResponseDto> {
+    return this.commandBus.execute(
+      new RefreshTokenCommand(user.getId(), user.getRefreshToken()),
+    );
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Logout user' })
+  @ApiResponse({ status: 200 })
+  async logout(@CurrentUser() user: User): Promise<void> {
+    await this.commandBus.execute(new LogoutCommand(user.getId()));
   }
 }

@@ -6,6 +6,7 @@ import { UserCreatedEvent } from '../events/user-created.event';
 import { UserEmailVerifiedEvent } from '../events/user-email-verified.event';
 import { PasswordResetRequestedEvent } from '../events/password-reset-requested.event';
 import { PasswordResetEvent } from '../events/password-reset.event';
+import { UserLoggedOutEvent } from '../events/user-logged-out.event';
 
 export class User extends AggregateRoot {
   private readonly id: UserId;
@@ -14,6 +15,7 @@ export class User extends AggregateRoot {
   private isVerified: boolean;
   private passwordHistory: string[] = [];
   private lastPasswordChange?: Date;
+  private refreshToken?: string;
 
   constructor(props: { id: UserId; email: Email; password: Password }) {
     super();
@@ -79,5 +81,18 @@ export class User extends AggregateRoot {
 
   getLastPasswordChange(): Date | undefined {
     return this.lastPasswordChange;
+  }
+
+  setRefreshToken(token: string): void {
+    this.refreshToken = token;
+  }
+
+  clearRefreshToken(): void {
+    this.refreshToken = null;
+    this.apply(new UserLoggedOutEvent(this.id.getValue()));
+  }
+
+  getRefreshToken(): string | undefined {
+    return this.refreshToken;
   }
 }
