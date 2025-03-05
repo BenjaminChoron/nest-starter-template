@@ -14,9 +14,7 @@ A production-ready NestJS starter template with robust authentication, role-base
 - 📁 File uploads with Cloudinary
 - 🚫 Token blacklisting with Redis
 - 📝 OpenAPI/Swagger documentation
-- 🧪 Comprehensive test coverage
 - 🐳 Docker compose setup
-- 🔄 Auto-refresh tokens
 - ⚡ Request validation
 - 📊 Error handling
 
@@ -26,6 +24,7 @@ A production-ready NestJS starter template with robust authentication, role-base
 - **Database**: PostgreSQL + TypeORM
 - **Caching**: Redis
 - **Storage**: Cloudinary
+- **Email**: SendGrid
 - **Documentation**: Swagger/OpenAPI
 - **Testing**: Jest
 - **Containerization**: Docker
@@ -68,12 +67,11 @@ http://localhost:3000/api
 - `POST /auth/login` - Authenticate user
 - `POST /auth/refresh` - Refresh access token
 - `POST /auth/logout` - Invalidate tokens
-- `GET /auth/me` - Get current user
-- `POST /auth/password/check-strength` - Analyze password strength
+- `POST /auth/check-password-strength` - Analyze password strength
 
 **Password Management:**
 
-- `POST /auth/forgot-password` - Request password reset
+- `POST /auth/request-password-reset` - Request password reset
 - `POST /auth/reset-password` - Reset password with token
 
 **Email Verification:**
@@ -106,7 +104,7 @@ npm run test:cov
 
 ## License
 
-MIT
+This project is unlicensed.
 
 ## Password Security Features
 
