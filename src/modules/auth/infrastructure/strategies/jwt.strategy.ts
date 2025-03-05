@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -9,6 +9,7 @@ import { Email } from '../../domain/value-objects/email.value-object';
 import { Password } from '../../domain/value-objects/password.value-object';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
 import { Request } from 'express';
+import { TokenRevokedException } from '../../domain/exceptions/invalid-token.exception';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -28,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
 
     if (await this.tokenBlacklistService.isBlacklisted(token)) {
-      throw new UnauthorizedException('Token has been revoked');
+      throw new TokenRevokedException();
     }
 
     return User.create({

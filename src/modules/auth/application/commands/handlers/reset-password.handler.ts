@@ -5,6 +5,7 @@ import { TokenService } from '../../../domain/services/token.service';
 import { IUserRepository } from '../../../domain/repositories/user.repository.interface';
 import { InvalidTokenException } from '../../../domain/exceptions/invalid-token.exception';
 import { PasswordPolicyService } from '../../../domain/services/password-policy.service';
+import { TokenBlacklistService } from '../../../infrastructure/services/token-blacklist.service';
 
 @CommandHandler(ResetPasswordCommand)
 export class ResetPasswordHandler
@@ -15,6 +16,7 @@ export class ResetPasswordHandler
     private readonly userRepository: IUserRepository,
     private readonly tokenService: TokenService,
     private readonly passwordPolicyService: PasswordPolicyService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   async execute(command: ResetPasswordCommand): Promise<void> {
@@ -25,6 +27,16 @@ export class ResetPasswordHandler
       throw new InvalidTokenException();
     }
 
+    // Blacklist current refresh token if exists
+    const currentRefreshToken = user.getRefreshToken();
+
+    if (currentRefreshToken) {
+      await this.tokenBlacklistService.blacklistToken(
+        currentRefreshToken,
+        this.tokenService.getRefreshTokenTTL(),
+      );
+    }
+
     // Check password history and age
     await this.passwordPolicyService.validatePasswordPolicy(
       command.newPassword,
@@ -33,7 +45,10 @@ export class ResetPasswordHandler
       user.getLastPasswordChange(),
     );
 
+    // Update password and clear refresh token
     await user.updatePassword(command.newPassword);
+    user.clearRefreshToken();
+
     await this.userRepository.save(user);
   }
 }

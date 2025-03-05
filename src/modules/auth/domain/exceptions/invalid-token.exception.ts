@@ -5,3 +5,9 @@ export class InvalidTokenException extends UnauthorizedException {
     super('Invalid token');
   }
 }
+
+export class TokenRevokedException extends UnauthorizedException {
+  constructor() {
+    super('Token has been revoked');
+  }
+}
