@@ -11,9 +11,14 @@ enum MailType {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private readonly isDevelopment: boolean;
 
   constructor(private readonly configService: ConfigService) {
-    SendGrid.setApiKey(this.configService.get('SENDGRID_API_KEY'));
+    this.isDevelopment = this.configService.get('NODE_ENV') === 'development';
+
+    if (!this.isDevelopment) {
+      SendGrid.setApiKey(this.configService.get('SENDGRID_API_KEY'));
+    }
   }
 
   async sendVerificationEmail(email: string, token: string): Promise<void> {
@@ -70,12 +75,34 @@ export class EmailService {
     options: SendGrid.MailDataRequired,
     mailType: MailType,
   ): Promise<void> {
+    if (this.isDevelopment) {
+      this.logger.debug('Email details in development:');
+      this.logger.debug(`Type: ${mailType}`);
+      this.logger.debug(
+        `To: ${typeof options.to === 'string' ? options.to : JSON.stringify(options.to)}`,
+      );
+      this.logger.debug(`Subject: ${options.subject}`);
+      this.logger.debug(`Content: ${options.html}`);
+
+      return;
+    }
+
     try {
       await SendGrid.send(options);
-      this.logger.debug(`${mailType} email sent to ${options.to}`);
+      this.logger.debug(
+        `${mailType} email sent to ${
+          typeof options.to === 'string'
+            ? options.to
+            : JSON.stringify(options.to)
+        }`,
+      );
     } catch (error) {
       this.logger.error(
-        `Failed to send ${mailType} email to ${options.to}`,
+        `Failed to send ${mailType} email to ${
+          typeof options.to === 'string'
+            ? options.to
+            : JSON.stringify(options.to)
+        }`,
         error.stack,
       );
 
