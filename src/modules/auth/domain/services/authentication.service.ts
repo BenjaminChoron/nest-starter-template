@@ -19,8 +19,6 @@ export class AuthenticationService {
     }
 
     if (!user.isEmailVerified()) {
-      console.log(user);
-
       throw new UnverifiedEmailException();
     }
 

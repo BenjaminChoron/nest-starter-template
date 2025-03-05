@@ -19,9 +19,7 @@ export class EmailVerificationService {
       throw new InvalidVerificationTokenException();
     }
 
-    console.log(user);
     user.verifyEmail();
-    console.log(user);
     await this.userRepository.save(user);
   }
 }

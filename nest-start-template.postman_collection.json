@@ -115,6 +115,21 @@
         },
         {
           "name": "reset-password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', '');",
+                  "    pm.collectionVariables.set('REFRESH_TOKEN', '');",
+                  "    console.log('Tokens cleared after password reset');",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [],
@@ -171,7 +186,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 201) {",
                   "    pm.collectionVariables.set('ACCESS_TOKEN', '');",
                   "    pm.collectionVariables.set('REFRESH_TOKEN', '');",
                   "    console.log('Tokens cleared after logout');",
